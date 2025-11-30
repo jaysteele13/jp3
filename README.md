@@ -7,6 +7,8 @@ I will create a master prompt and initial direcotry structure to adhere to bette
 
 This may also include asynchronous threading.
 
+I will document and keep track of progress so I can produce a 'from start to end' type video
+
 ## How to Compile and Load Sketches
 
 The chip I am using is an esp32 dev board from Ali Express. The FQBN in esp32/esspressif is `esp32:esp32:esp32`.
