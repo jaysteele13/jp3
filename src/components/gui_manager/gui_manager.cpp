@@ -1,50 +1,62 @@
-// Setup PINS for SCA and SDL
-
-/*
-ESP32
-- GPIO21 (SDA) -> OLED SDA
-- GPIO22 (SCL) -> OLED SCL
-*/
-
-/*
-Bring in Library for OLED Screen SSD1306 I2C IIC SPI  SERIAL 128X64.
-*/
-
-// Test environment
-
-// Library
-#include "Arduino.h"
+#include "gui_manager.h"
 #include "Adafruit_SSD1306.h"
+#include "Adafruit_GFX.h"
+#include <Wire.h>
 
-// Pins
-#define ESP32_SDA_PIN 21
-#define ESP32_SCL_PIN 22
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C   // Match the working example
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+GUIManager::GUIManager() {
+    display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+}
 
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3D ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-
-// Setup
-void setup()
-{
-    Serial.begin(9600);
-
-    // Wait for display
+bool GUIManager::begin() {
+    Serial.begin(115200);
     delay(500);
 
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-    if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    // Match the working example pin setup
+    Wire.begin(/*SDA=*/21, /*SCL=*/22);
+
+    if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
-        for(;;); // Don't proceed, loop forever
+        return false;
+    } else {
+        Serial.println(F("SSD1306 allocation succeeded"));
     }
 
-    // Show initial display buffer contents on the screen --
-    // the library initializes this with an Adafruit splash screen.
-    display.display();
-    delay(2000); // Pause for 2 seconds
+    // Match behavior of the working test code
+    display->clearDisplay();
+    display->setTextSize(1);
+    display->setTextColor(SSD1306_WHITE);
+    display->setCursor(0, 0);
+    // PLACEHOLDER TEXT
+    display->println("TEST OLED");
+    display->display();
 
+    return true;
+}
+
+void GUIManager::clear() {
+    display->clearDisplay();
+}
+
+void GUIManager::update() {
+    display->display();
+}
+
+void GUIManager::setText(int x, int y, const char* text) {
+    display->clearDisplay();
+    display->setTextSize(1);
+    display->setTextColor(SSD1306_WHITE);
+    display->setCursor(x, y);
+    display->println(text);
+    display->display();  // Needed or text will not appear
+}
+
+void GUIManager::showSplashScreen() {
+    // Just redisplay whatever is already rendered
+    display->display();
+    delay(2000);
 }

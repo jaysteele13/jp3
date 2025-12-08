@@ -1,32 +1,47 @@
-/**
- * Blink
- *
- * Turns on an LED on for one second,
- * then off for one second, repeatedly.
- */
 #include "Arduino.h"
+#include "components/gui_manager/gui_manager.h"
+#include "utils/find_oled_address/find_oled_address.h"
 
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 2
-#endif
+GUIManager gui;
+FindOLEDAddress finder;
 
-void setup()
-{
-  // initialize LED digital pin as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
+void setup() {
+  gui.begin();
 }
 
-void loop()
-{
-  // turn the LED on (HIGH is the voltage level)
-//   digitalWrite(LED_BUILTIN, HIGH);
-
-//   // wait for a second
-//   delay(1000);
-
-  // turn the LED off by making the voltage LOW
-  digitalWrite(LED_BUILTIN, LOW);
-
-   // wait for a second
+void loop() {
   delay(1000);
 }
+
+
+
+
+// THIS WORKS FOR TESTING THE OLED DISPLAY ADDRESS
+// #include <Wire.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
+
+// #define SCREEN_WIDTH 128
+// #define SCREEN_HEIGHT 64
+// #define OLED_RESET -1
+// #define SCREEN_ADDRESS 0x3C
+
+// Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// void setup() {
+//   Serial.begin(115200);
+//   Wire.begin(21,22); // or whichever pins worked
+//   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+//     Serial.println("SSD1306 allocation failed");
+//     for(;;);
+//   }
+//   display.clearDisplay();
+//   display.setTextSize(1);
+//   display.setTextColor(SSD1306_WHITE);
+//   display.setCursor(0,0);
+//   display.println("Hello OLED");
+//   display.display();
+// }
+
+// void loop() {}
+
