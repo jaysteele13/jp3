@@ -14,11 +14,8 @@ I will document and keep track of progress so I can produce a 'from start to end
 The chip I am using is an esp32 dev board from Ali Express. The FQBN in esp32/esspressif is `esp32:esp32:esp32`.
 To get this working on my computer I needed to ensure drivers for `CP2102` were properly configured.
 
+**previously:**
 As I am not using the Arduino IDE. I must leverage the `Arduino-CLI` tool. I have scripts in order to **compile** and **upload** my code to the ESP32.
 
-#### For Uploading
-`FlashMode` must be '**dio**' otherwise the frequency won't match up and uploading will fail:
-
-```bash
---board-options FlashMode=dio
-```
+**NOW:**
+I am using Platform IO which is an opensource CLI and extension in VS Code to compile c code to ESP32.
