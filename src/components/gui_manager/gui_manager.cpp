@@ -2,6 +2,7 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 #include <Wire.h>
+#include "../../utils/gui/song/song.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -32,7 +33,7 @@ bool GUIManager::begin() {
     display->setTextColor(SSD1306_WHITE);
     display->setCursor(0, 0);
     // PLACEHOLDER TEXT
-    display->println("TEST OLED, here is longer text to experiment so I worked on it hehehhehehehhehe hi there");
+    display->println("TEST OLED");
     display->display();
 
     return true;
@@ -59,4 +60,8 @@ void GUIManager::showSplashScreen() {
     // Just redisplay whatever is already rendered
     display->display();
     delay(2000);
+}
+
+void GUIManager::displaySong(Song& song) {
+    song.display(*display);
 }

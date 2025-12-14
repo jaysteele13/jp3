@@ -1,12 +1,11 @@
 #include "Arduino.h"
 #include "components/gui_manager/gui_manager.h"
-#include "utils/find_oled_address/find_oled_address.h"
 
 GUIManager gui;
-FindOLEDAddress finder;
 
 void setup() {
   gui.begin();
+  gui.displaySong(*(new Song("Test Song", 240, "Test Album", "Test Artist", "Test Playlist")));
 }
 
 void loop() {

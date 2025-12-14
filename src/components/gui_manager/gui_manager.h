@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
+#include "../../utils/gui/song/song.h"
 
 class GUIManager {
 private:
@@ -16,6 +17,9 @@ public:
     void update();
     void setText(int x, int y, const char* text);
     void showSplashScreen();
+
+    // GUI SCREENS
+    void displaySong(Song& song);
 };
 
 #endif

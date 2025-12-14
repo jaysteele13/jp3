@@ -2,6 +2,8 @@
 #define SONG_H
 
 #include "Arduino.h"
+#include "Adafruit_SSD1306.h"
+#include "Adafruit_GFX.h"
 
 class Song {
 public:
@@ -11,6 +13,7 @@ public:
     void stop();
     void pause();
     void resume();
+    void display(Adafruit_SSD1306 &display);
 
 private:
     String songTitle;
