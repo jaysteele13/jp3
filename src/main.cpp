@@ -5,7 +5,8 @@ GUIManager gui;
 
 void setup() {
   gui.begin();
-  gui.displaySong(*(new Song("Test Song", 240, "Test Album", "Test Artist", "Test Playlist")));
+  Song testSong("Test Song", 240, "Test Album", "Test Artist", "Test Playlist");
+  gui.displaySong(testSong);
 }
 
 void loop() {

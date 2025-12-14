@@ -23,3 +23,5 @@ private:
     String artistName;
     String playlistName;
 };
+
+#endif

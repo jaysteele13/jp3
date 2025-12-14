@@ -28,36 +28,35 @@ void Song::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
     
     // Title
-    display.setTextSize(2);
+    display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
     display.println(songTitle);
     
-    // Artist and Album
-    display.setTextSize(1);
+    // Progress bar
+    display.drawRect(0, 14, 128, 4, SSD1306_WHITE);
+    display.fillRect(0, 14, 64, 4, SSD1306_WHITE); // 50% progress example
+    
+    // Artist
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 20);
-    display.print("Artist: ");
     display.println(artistName);
     
-    display.setCursor(0, 30);
-    display.print("Album: ");
+    // Album (teal color - using white as monochrome approximation)
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 36);
     display.println(albumName);
     
-    // Duration and Playlist
-    display.setCursor(0, 40);
-    display.print("Duration: ");
-    display.print(duration);
-    display.println("s");
-    
-    if (playlistName != "") {
-        display.setCursor(0, 50);
-        display.print("Playlist: ");
-        display.println(playlistName);
-    }
+    // Playlist (pink color - using white as monochrome approximation)
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 46);
+    display.println(playlistName);
     
     // Playing status
     display.setCursor(0, 57);
-    display.print(isPlaying ? "▶ PLAYING" : "⏸ PAUSED");
+    display.print(isPlaying ? "PLAYING" : "PAUSED");
     
     display.display();
 }

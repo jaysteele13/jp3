@@ -9,6 +9,10 @@
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C   // Match the working example
 
+// PINS
+#define SDA_PIN 21
+#define SCL_PIN 22
+
 GUIManager::GUIManager() {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 }
@@ -17,8 +21,7 @@ bool GUIManager::begin() {
     Serial.begin(115200);
     delay(500);
 
-    // Match the working example pin setup
-    Wire.begin(/*SDA=*/21, /*SCL=*/22);
+    Wire.begin(/*SDA=*/SDA_PIN, /*SCL=*/SCL_PIN);
 
     if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
@@ -27,14 +30,14 @@ bool GUIManager::begin() {
         Serial.println(F("SSD1306 allocation succeeded"));
     }
 
-    // Match behavior of the working test code
-    display->clearDisplay();
-    display->setTextSize(1);
-    display->setTextColor(SSD1306_WHITE);
-    display->setCursor(0, 0);
-    // PLACEHOLDER TEXT
-    display->println("TEST OLED");
-    display->display();
+    // TESTING DISPLAY ONLY
+    // display->clearDisplay();
+    // display->setTextSize(1);
+    // display->setTextColor(SSD1306_WHITE);
+    // display->setCursor(0, 0);
+    // // PLACEHOLDER TEXT
+    // display->println("TEST OLED");
+    // display->display();
 
     return true;
 }
