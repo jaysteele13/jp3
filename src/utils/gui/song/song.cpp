@@ -1,4 +1,5 @@
 #include "song.h"
+#include "../../validation/text_validator.h"
 
 Song::Song(String title, int duration, String album, String artist, String playlist) :
     songTitle(title),
@@ -27,32 +28,21 @@ void Song::resume() {
 void Song::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
     
-    // Title
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
-    display.println(songTitle);
+    // Title with truncation
+    TextValidator::displayTruncatedText(display, songTitle, 0, 0, 1, 128);
     
     // Progress bar
     display.drawRect(0, 14, 128, 4, SSD1306_WHITE);
     display.fillRect(0, 14, 64, 4, SSD1306_WHITE); // 50% progress example
     
-    // Artist
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 20);
-    display.println(artistName);
+    // Artist with truncation
+    TextValidator::displayTruncatedText(display, artistName, 0, 20, 2, 128);
     
-    // Album (teal color - using white as monochrome approximation)
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 36);
-    display.println(albumName);
+    // Album with truncation (teal color approximation)
+    TextValidator::displayTruncatedText(display, albumName, 0, 36, 1, 128);
     
-    // Playlist (pink color - using white as monochrome approximation)
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 46);
-    display.println(playlistName);
+    // Playlist with truncation (pink color approximation)
+    TextValidator::displayTruncatedText(display, playlistName, 0, 46, 1, 128);
     
     // Playing status
     display.setCursor(0, 57);
