@@ -30,6 +30,8 @@ Now connected to ESP32 to prototype.
 
 Now the plan is to download this driver and available library and display something on the screen. We will then working on getting text, then scrolling text. Then animations...
 
+When Connected to Mb102. The voltage is less than either 5v or 3.3v So this can be used to power both alone. I need to buck boost, minimize voltage to be solid 3.3v. For now prototype with micro usb plaug.
+
 
 
 ### Buttons and Switches

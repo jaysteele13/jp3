@@ -32,7 +32,7 @@ bool GUIManager::begin() {
     display->setTextColor(SSD1306_WHITE);
     display->setCursor(0, 0);
     // PLACEHOLDER TEXT
-    display->println("TEST OLED");
+    display->println("TEST OLED, here is longer text to experiment so I worked on it hehehhehehehhehe hi there");
     display->display();
 
     return true;
