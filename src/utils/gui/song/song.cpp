@@ -28,21 +28,21 @@ void Song::resume() {
 void Song::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
     
-    // Title with truncation
-    TextValidator::displayTruncatedText(display, songTitle, 0, 0, 1, 128);
+    // Title with scrolling (lineId 0)
+    TextValidator::displayScrollingText(display, songTitle, 0, 0, 1, 128, 0);
     
     // Progress bar
     display.drawRect(0, 14, 128, 4, SSD1306_WHITE);
     display.fillRect(0, 14, 64, 4, SSD1306_WHITE); // 50% progress example
     
-    // Artist with truncation
-    TextValidator::displayTruncatedText(display, artistName, 0, 20, 2, 128);
+    // Artist with scrolling (lineId 1)
+    TextValidator::displayScrollingText(display, artistName, 0, 20, 2, 128, 1);
     
-    // Album with truncation (teal color approximation)
-    TextValidator::displayTruncatedText(display, albumName, 0, 36, 1, 128);
+    // Album with scrolling (lineId 2)
+    TextValidator::displayScrollingText(display, albumName, 0, 36, 1, 128, 2);
     
-    // Playlist with truncation (pink color approximation)
-    TextValidator::displayTruncatedText(display, playlistName, 0, 46, 1, 128);
+    // Playlist with scrolling (lineId 3)
+    TextValidator::displayScrollingText(display, playlistName, 0, 46, 1, 128, 3);
     
     // Playing status
     display.setCursor(0, 57);

@@ -7,11 +7,15 @@
 
 class TextValidator {
 public:
-    static void displayTruncatedText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth = 128);
-    static bool needsTruncation(String text, int textSize, int maxWidth = 128);
+    static void displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth = 128, int lineId = 0);
+    static void resetScrollOffsets();
+    static bool needsScrolling(String text, int textSize, int maxWidth = 128);
     
 private:
     static int getTextWidth(String text, int textSize);
+    static int scrollOffsets[10]; // Support up to 10 different scrolling lines
+    static unsigned long lastScrollTime[10]; // Separate timing for each line
+    static const int SCROLL_SPEED = 200; // milliseconds between scroll updates
 };
 
 #endif

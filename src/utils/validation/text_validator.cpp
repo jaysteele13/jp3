@@ -1,6 +1,9 @@
 #include "text_validator.h"
 
-void TextValidator::displayTruncatedText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth) {
+int TextValidator::scrollOffsets[10] = {0};
+unsigned long TextValidator::lastScrollTime[10] = {0};
+
+void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth, int lineId) {
     display.setTextSize(textSize);
     display.setTextColor(SSD1306_WHITE);
     
@@ -13,21 +16,29 @@ void TextValidator::displayTruncatedText(Adafruit_SSD1306 &display, String text,
         return;
     }
     
-    // Text needs truncation - calculate max characters that fit
-    int charWidth = 6 * textSize;
-    int ellipsisWidth = 3 * charWidth; // "..." takes 3 characters
-    int maxChars = (maxWidth - ellipsisWidth) / charWidth;
-    
-    if (maxChars < 1) {
-        maxChars = 1; // Show at least 1 character
+    // Text needs scrolling - update scroll offset
+    unsigned long currentTime = millis();
+    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
+        scrollOffsets[lineId]++;
+        if (scrollOffsets[lineId] > textWidth + maxWidth) {
+            scrollOffsets[lineId] = 0; // Reset to start
+        }
+        lastScrollTime[lineId] = currentTime;
     }
     
-    display.setCursor(x, y);
-    display.print(text.substring(0, maxChars));
-    display.print("...");
+    // Set cursor and display scrolled text
+    display.setCursor(x - scrollOffsets[lineId], y);
+    display.println(text);
 }
 
-bool TextValidator::needsTruncation(String text, int textSize, int maxWidth) {
+void TextValidator::resetScrollOffsets() {
+    for (int i = 0; i < 10; i++) {
+        scrollOffsets[i] = 0;
+        lastScrollTime[i] = 0;
+    }
+}
+
+bool TextValidator::needsScrolling(String text, int textSize, int maxWidth) {
     return getTextWidth(text, textSize) > maxWidth;
 }
 
