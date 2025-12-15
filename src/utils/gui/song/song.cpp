@@ -45,13 +45,7 @@ void Song::display(Adafruit_SSD1306 &display) {
     currentY += 8;
     
     // Artist with scrolling (lineId 1) - force scroll test
-    static int artistScroll = 0;
-    artistScroll = (artistScroll + 1) % 200; // Simple continuous scroll
-    
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(startX - artistScroll, currentY);
-    display.println(artistName);
+    TextValidator::displayScrollingText(display, artistName, startX, currentY, 2, 128, 1);
     currentY += (lineHeight*2);
     
     // Album with scrolling (lineId 2)

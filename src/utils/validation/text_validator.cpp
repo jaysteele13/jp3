@@ -16,69 +16,68 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
         return;
     }
     
-    // Split text into segments for scrolling
-    String* lines = splitTextIntoLines(text, textSize, maxWidth);
-    int totalSegments = getLineCount(lines);
-    
-    if (totalSegments <= 1) {
-        // No meaningful segments, display original text
-        display.setCursor(x, y);
-        display.println(text);
-        return;
-    }
-    
-    // Text needs scrolling - update scroll offset for segment switching
+    // Character-by-character scrolling
     unsigned long currentTime = millis();
-    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED * 3) { // Slower switching between segments
+    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
         scrollOffsets[lineId]++;
-        if (scrollOffsets[lineId] >= totalSegments) {
-            scrollOffsets[lineId] = 0; // Reset to first segment
+        // Reset when text has completely scrolled past the display
+        if (scrollOffsets[lineId] > textWidth + maxWidth) {
+            scrollOffsets[lineId] = 0; // Reset to start
         }
         lastScrollTime[lineId] = currentTime;
     }
     
-    // Display only the current segment on the same line
-    display.setCursor(x, y);
-    if (lines[scrollOffsets[lineId]].length() > 0) {
-        display.println(lines[scrollOffsets[lineId]]);
+    // Calculate which characters to display based on scroll position
+    int charWidth = 7 * textSize; // Approximate character width
+    int startChar = scrollOffsets[lineId] / charWidth;
+    int visibleChars = maxWidth / charWidth;
+    
+    // Ensure we don't go beyond text length
+    if (startChar >= text.length()) {
+        startChar = 0;
+        scrollOffsets[lineId] = 0;
     }
+    
+    // Extract the visible portion of text
+    int endChar = startChar + visibleChars + 1;
+    if (endChar > text.length()) {
+        endChar = text.length();
+    }
+    String visibleText = text.substring(startChar, endChar);
+    
+    // Calculate cursor position for smooth scrolling
+    int pixelOffset = scrollOffsets[lineId] % charWidth;
+    int cursorX = x - pixelOffset;
+    
+    // Display the visible text
+    display.setCursor(cursorX, y);
+    display.println(visibleText);
 }
+    
+//     // Character-by-character scrolling (like your example)
+//     unsigned long currentTime = millis();
+//     if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
+//         scrollOffsets[lineId]++;
+//         // Reset when text has completely scrolled past the display
+//         if (scrollOffsets[lineId] > textWidth + maxWidth) {
+//             scrollOffsets[lineId] = 0; // Reset to start
+//         }
+//         lastScrollTime[lineId] = currentTime;
+//     }
+    
+//     // Set cursor with negative scroll offset for smooth scrolling
+//     int cursorX = x - scrollOffsets[lineId];
+//     display.setCursor(cursorX, y);
+    
+//     // Display the text with current scroll offset - all on same line
+//     display.println(text);
+// }
 
 void TextValidator::resetScrollOffsets() {
     for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
         scrollOffsets[i] = 0;
         lastScrollTime[i] = 0;
     }
-}
-
-// Split Text into array of lines if too long for display
-String* TextValidator::splitTextIntoLines(String text, int textSize, int maxWidth) {
-    static String lines[LINE_SUPPORT_AMOUNT]; // Support up to 10 lines
-    // Clear previous contents to avoid stale data in the static array
-    for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
-        lines[i] = "";
-    }
-    int lineCount = 0;
-    String currentLine = "";
-    
-    for (unsigned int i = 0; i < text.length(); i++) {
-        char c = text.charAt(i);
-        currentLine += c;
-        
-        if (getTextWidth(currentLine, textSize) > maxWidth) {
-            // Remove last character and store line
-            currentLine.remove(currentLine.length() - 1);
-            lines[lineCount++] = currentLine;
-            currentLine = String(c); // Start new line with current character
-        }
-    }
-    
-    // Add any remaining text as the last line
-    if (currentLine.length() > 0 && lineCount < LINE_SUPPORT_AMOUNT) {
-        lines[lineCount++] = currentLine;
-    }
-    
-    return lines;
 }
 
 // Helper function to count non-empty lines
