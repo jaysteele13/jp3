@@ -8,6 +8,8 @@
 class TextValidator {
 public:
     static void displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth = 128, int lineId = 0);
+    static void displayPlayIcon(Adafruit_SSD1306 &display, int x, int y);
+    static void displayPauseIcon(Adafruit_SSD1306 &display, int x, int y);
     static void resetScrollOffsets();
     static bool needsScrolling(String text, int textSize, int maxWidth = 128);
     

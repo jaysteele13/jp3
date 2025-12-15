@@ -52,13 +52,14 @@ void Song::display(Adafruit_SSD1306 &display) {
     TextValidator::displayScrollingText(display, albumName, startX, currentY, 1, 128, 2);
     currentY += lineHeight;
 
-    // Playlist with scrolling (lineId 3)
-    TextValidator::displayScrollingText(display, playlistName, startX, currentY, 1, 128, 3);
-    currentY += lineHeight;
-
-    // Playing status
-    display.setCursor(startX, currentY);
-    display.print(isPlaying ? "PLAYING" : "PAUSED");
-    
+    // Icon for play/pause
+    if(isPlaying) {
+        TextValidator::displayPlayIcon(display, startX, currentY);
+        currentY += lineHeight;
+    }
+    else {
+        TextValidator::displayPauseIcon(display, startX, currentY);
+        currentY += lineHeight;
+    }
     display.display();
 }

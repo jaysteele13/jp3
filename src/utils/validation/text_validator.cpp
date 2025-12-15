@@ -53,25 +53,16 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
     display.setCursor(cursorX, y);
     display.println(visibleText);
 }
-    
-//     // Character-by-character scrolling (like your example)
-//     unsigned long currentTime = millis();
-//     if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
-//         scrollOffsets[lineId]++;
-//         // Reset when text has completely scrolled past the display
-//         if (scrollOffsets[lineId] > textWidth + maxWidth) {
-//             scrollOffsets[lineId] = 0; // Reset to start
-//         }
-//         lastScrollTime[lineId] = currentTime;
-//     }
-    
-//     // Set cursor with negative scroll offset for smooth scrolling
-//     int cursorX = x - scrollOffsets[lineId];
-//     display.setCursor(cursorX, y);
-    
-//     // Display the text with current scroll offset - all on same line
-//     display.println(text);
-// }
+void TextValidator::displayPlayIcon(Adafruit_SSD1306 &display, int x, int y) {
+    // Simple play icon (triangle)
+    display.fillTriangle(x, y, x, y + 10, x + 8, y + 5, SSD1306_WHITE);
+}
+
+void TextValidator::displayPauseIcon(Adafruit_SSD1306 &display, int x, int y) {
+    // Simple pause icon (two vertical bars)
+    display.fillRect(x, y, 2, 10, SSD1306_WHITE);
+    display.fillRect(x + 4, y, 2, 10, SSD1306_WHITE);
+}
 
 void TextValidator::resetScrollOffsets() {
     for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
