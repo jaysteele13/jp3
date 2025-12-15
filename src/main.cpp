@@ -2,15 +2,16 @@
 #include "components/gui_manager/gui_manager.h"
 
 GUIManager gui;
+Song testSong("Test Song", 240, "Test Album", "Test Artist", "Test Playlist testing for days ahhahahah");
 
 void setup() {
   gui.begin();
-  Song testSong("Test Song", 240, "Test Album", "Test Artist", "Test Playlist testing for days ahhahahah");
   gui.displaySong(testSong);
 }
 
 void loop() {
   delay(1000);
+  gui.displaySong(testSong);
 }
 
 

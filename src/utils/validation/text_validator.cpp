@@ -27,8 +27,25 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
     }
     
     // Set cursor and display scrolled text
-    display.setCursor(x - scrollOffsets[lineId], y);
+    int cursorX = x - scrollOffsets[lineId];
+    display.setCursor(cursorX, y);
     display.println(text);
+    
+    // Debug: Show scroll info for artist (lineId 1)
+    if (lineId == 1) {
+        display.setCursor(0, 55);
+        display.print("S:");
+        display.print(scrollOffsets[lineId]);
+    }
+    
+    // Debug: Force artist to scroll for testing
+    if (lineId == 1) { // Artist line
+        display.setCursor(0, 55);
+        display.print("Scroll: ");
+        display.print(scrollOffsets[lineId]);
+        display.print(" W:");
+        display.print(textWidth);
+    }
 }
 
 void TextValidator::resetScrollOffsets() {

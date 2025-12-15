@@ -27,25 +27,43 @@ void Song::resume() {
 
 void Song::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
+
+    //Line Height in the hopes text doesn't overlap
+    const int lineHeight = 12;
+    const int startX = 0;
+    int currentY = 0;
+    
+    // Don't reset scroll offsets - let them accumulate for smooth scrolling
     
     // Title with scrolling (lineId 0)
-    TextValidator::displayScrollingText(display, songTitle, 0, 0, 1, 128, 0);
+    TextValidator::displayScrollingText(display, songTitle, startX, currentY, 1, 128, 0);
+    currentY += lineHeight;
     
     // Progress bar
-    display.drawRect(0, 14, 128, 4, SSD1306_WHITE);
-    display.fillRect(0, 14, 64, 4, SSD1306_WHITE); // 50% progress example
+    display.drawRect(0, currentY, 128, 4, SSD1306_WHITE);
+    display.fillRect(0, currentY, 64, 4, SSD1306_WHITE); // 50% progress example
+    currentY += 8;
     
-    // Artist with scrolling (lineId 1)
-    TextValidator::displayScrollingText(display, artistName, 0, 20, 2, 128, 1);
+    // Artist with scrolling (lineId 1) - force scroll test
+    static int artistScroll = 0;
+    artistScroll = (artistScroll + 1) % 200; // Simple continuous scroll
+    
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(startX - artistScroll, currentY);
+    display.println(artistName);
+    currentY += (lineHeight*2);
     
     // Album with scrolling (lineId 2)
-    TextValidator::displayScrollingText(display, albumName, 0, 36, 1, 128, 2);
-    
+    TextValidator::displayScrollingText(display, albumName, startX, currentY, 1, 128, 2);
+    currentY += lineHeight;
+
     // Playlist with scrolling (lineId 3)
-    TextValidator::displayScrollingText(display, playlistName, 0, 46, 1, 128, 3);
-    
+    TextValidator::displayScrollingText(display, playlistName, startX, currentY, 1, 128, 3);
+    currentY += lineHeight;
+
     // Playing status
-    display.setCursor(0, 57);
+    display.setCursor(startX, currentY);
     display.print(isPlaying ? "PLAYING" : "PAUSED");
     
     display.display();

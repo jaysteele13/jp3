@@ -15,7 +15,7 @@ private:
     static int getTextWidth(String text, int textSize);
     static int scrollOffsets[10]; // Support up to 10 different scrolling lines
     static unsigned long lastScrollTime[10]; // Separate timing for each line
-    static const int SCROLL_SPEED = 200; // milliseconds between scroll updates
+    static const int SCROLL_SPEED = 100; // milliseconds between scroll updates
 };
 
 #endif
