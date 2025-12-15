@@ -1,7 +1,7 @@
 #include "text_validator.h"
 
-int TextValidator::scrollOffsets[10] = {0};
-unsigned long TextValidator::lastScrollTime[10] = {0};
+int TextValidator::scrollOffsets[LINE_SUPPORT_AMOUNT] = {0};
+unsigned long TextValidator::lastScrollTime[LINE_SUPPORT_AMOUNT] = {0};
 
 void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth, int lineId) {
     display.setTextSize(textSize);
@@ -16,43 +16,80 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
         return;
     }
     
-    // Text needs scrolling - update scroll offset
+    // Split text into segments for scrolling
+    String* lines = splitTextIntoLines(text, textSize, maxWidth);
+    int totalSegments = getLineCount(lines);
+    
+    if (totalSegments <= 1) {
+        // No meaningful segments, display original text
+        display.setCursor(x, y);
+        display.println(text);
+        return;
+    }
+    
+    // Text needs scrolling - update scroll offset for segment switching
     unsigned long currentTime = millis();
-    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
+    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED * 3) { // Slower switching between segments
         scrollOffsets[lineId]++;
-        if (scrollOffsets[lineId] > textWidth + maxWidth) {
-            scrollOffsets[lineId] = 0; // Reset to start
+        if (scrollOffsets[lineId] >= totalSegments) {
+            scrollOffsets[lineId] = 0; // Reset to first segment
         }
         lastScrollTime[lineId] = currentTime;
     }
     
-    // Set cursor and display scrolled text
-    int cursorX = x - scrollOffsets[lineId];
-    display.setCursor(cursorX, y);
-    display.println(text);
-    
-    // Debug: Show scroll info for artist (lineId 1)
-    if (lineId == 1) {
-        display.setCursor(0, 55);
-        display.print("S:");
-        display.print(scrollOffsets[lineId]);
-    }
-    
-    // Debug: Force artist to scroll for testing
-    if (lineId == 1) { // Artist line
-        display.setCursor(0, 55);
-        display.print("Scroll: ");
-        display.print(scrollOffsets[lineId]);
-        display.print(" W:");
-        display.print(textWidth);
+    // Display only the current segment on the same line
+    display.setCursor(x, y);
+    if (lines[scrollOffsets[lineId]].length() > 0) {
+        display.println(lines[scrollOffsets[lineId]]);
     }
 }
 
 void TextValidator::resetScrollOffsets() {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
         scrollOffsets[i] = 0;
         lastScrollTime[i] = 0;
     }
+}
+
+// Split Text into array of lines if too long for display
+String* TextValidator::splitTextIntoLines(String text, int textSize, int maxWidth) {
+    static String lines[LINE_SUPPORT_AMOUNT]; // Support up to 10 lines
+    // Clear previous contents to avoid stale data in the static array
+    for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
+        lines[i] = "";
+    }
+    int lineCount = 0;
+    String currentLine = "";
+    
+    for (unsigned int i = 0; i < text.length(); i++) {
+        char c = text.charAt(i);
+        currentLine += c;
+        
+        if (getTextWidth(currentLine, textSize) > maxWidth) {
+            // Remove last character and store line
+            currentLine.remove(currentLine.length() - 1);
+            lines[lineCount++] = currentLine;
+            currentLine = String(c); // Start new line with current character
+        }
+    }
+    
+    // Add any remaining text as the last line
+    if (currentLine.length() > 0 && lineCount < LINE_SUPPORT_AMOUNT) {
+        lines[lineCount++] = currentLine;
+    }
+    
+    return lines;
+}
+
+// Helper function to count non-empty lines
+int TextValidator::getLineCount(String* lines) {
+    int count = 0;
+    for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
+        if (lines[i].length() > 0) {
+            count++;
+        }
+    }
+    return count;
 }
 
 bool TextValidator::needsScrolling(String text, int textSize, int maxWidth) {

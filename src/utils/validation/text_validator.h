@@ -13,9 +13,13 @@ public:
     
 private:
     static int getTextWidth(String text, int textSize);
-    static int scrollOffsets[10]; // Support up to 10 different scrolling lines
-    static unsigned long lastScrollTime[10]; // Separate timing for each line
+    static String* splitTextIntoLines(String text, int textSize, int maxWidth = 128);
+    static int getLineCount(String* lines);
+    static const int LINE_SUPPORT_AMOUNT = 5; // Maximum number of lines supported
+    static int scrollOffsets[LINE_SUPPORT_AMOUNT]; // Support up to 10 different scrolling lines
+    static unsigned long lastScrollTime[LINE_SUPPORT_AMOUNT]; // Separate timing for each line
     static const int SCROLL_SPEED = 100; // milliseconds between scroll updates
+    
 };
 
 #endif
