@@ -71,20 +71,6 @@ void TextValidator::resetScrollOffsets() {
     }
 }
 
-// Helper function to count non-empty lines
-int TextValidator::getLineCount(String* lines) {
-    int count = 0;
-    for (int i = 0; i < LINE_SUPPORT_AMOUNT; i++) {
-        if (lines[i].length() > 0) {
-            count++;
-        }
-    }
-    return count;
-}
-
-bool TextValidator::needsScrolling(String text, int textSize, int maxWidth) {
-    return getTextWidth(text, textSize) > maxWidth;
-}
 
 int TextValidator::getTextWidth(String text, int textSize) {
     // Approximate character width: 6 pixels for size 1, scaled by textSize

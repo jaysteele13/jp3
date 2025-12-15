@@ -30,15 +30,6 @@ bool GUIManager::begin() {
         Serial.println(F("SSD1306 allocation succeeded"));
     }
 
-    // TESTING DISPLAY ONLY
-    // display->clearDisplay();
-    // display->setTextSize(1);
-    // display->setTextColor(SSD1306_WHITE);
-    // display->setCursor(0, 0);
-    // // PLACEHOLDER TEXT
-    // display->println("TEST OLED");
-    // display->display();
-
     return true;
 }
 
