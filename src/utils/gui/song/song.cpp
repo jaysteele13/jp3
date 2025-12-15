@@ -46,20 +46,13 @@ void Song::display(Adafruit_SSD1306 &display) {
     
     // Artist with scrolling (lineId 1) - force scroll test
     TextValidator::displayScrollingText(display, artistName, startX, currentY, 2, 128, 1);
-    currentY += (lineHeight*2);
+    currentY += (lineHeight * 2);
     
-    // Album with scrolling (lineId 2)
-    TextValidator::displayScrollingText(display, albumName, startX, currentY, 1, 128, 2);
-    currentY += lineHeight;
-
-    // Icon for play/pause
     if(isPlaying) {
         TextValidator::displayPlayIcon(display, startX, currentY);
-        currentY += lineHeight;
     }
     else {
         TextValidator::displayPauseIcon(display, startX, currentY);
-        currentY += lineHeight;
     }
     display.display();
 }
