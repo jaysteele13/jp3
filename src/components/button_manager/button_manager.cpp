@@ -1,65 +1,55 @@
 #include "button_manager.h"
 
 ButtonManager::ButtonManager() {
-    upButton = {26, ButtonState::RELEASED, ButtonState::RELEASED, 0, 0, false};
-    downButton = {25, ButtonState::RELEASED, ButtonState::RELEASED, 0, 0, false};
+    upPin = 26;
+    downPin = 25;
+    lastUpState = HIGH;
+    lastDownState = HIGH;
+    lastDebounceTime = 0;
 }
 
 void ButtonManager::begin() {
-    pinMode(upButton.pin, INPUT_PULLUP);
-    pinMode(downButton.pin, INPUT_PULLUP);
+    Serial.println("Initializing button manager...");
+    pinMode(upPin, INPUT_PULLUP);
+    pinMode(downPin, INPUT_PULLUP);
+    Serial.println("Button pins set to INPUT_PULLUP");
+    Serial.println("=== TEST: Direct GPIO to Ground ===");
+    Serial.println("Try touching GPIO25 directly to GND with a jumper wire");
+    Serial.print("Up pin (26) initial state: ");
+    Serial.println(digitalRead(upPin));
+    Serial.print("Down pin (25) initial state: ");
+    Serial.println(digitalRead(downPin));
 }
 
-void ButtonManager::update() {
-    updateButton(upButton);
-    updateButton(downButton);
-}
-
-void ButtonManager::updateButton(Button &button) {
-    bool currentRawState = !digitalRead(button.pin);
-    unsigned long currentTime = millis();
+bool ButtonManager::checkDownPressed() {
+    // Read multiple times to ensure stable reading
+    bool reading1 = digitalRead(downPin);
+    delay(5);
+    bool reading2 = digitalRead(downPin);
+    delay(5);
+    bool reading3 = digitalRead(downPin);
     
-    if (currentRawState != button.lastRawState) {
-        button.lastDebounceTime = currentTime;
+    // Consider it pressed if at least 2 out of 3 readings are LOW
+    bool currentState = (reading1 + reading2 + reading3) <= 1;
+    
+    if (currentState == LOW && lastDownState == HIGH) {
+        lastDownState = currentState;
+        return true;
     }
     
-    if ((currentTime - button.lastDebounceTime) > DEBOUNCE_DELAY) {
-        if (currentRawState && button.state == ButtonState::RELEASED) {
-            button.state = ButtonState::PRESSED;
-            button.pressStartTime = currentTime;
-        } else if (currentRawState && button.state == ButtonState::PRESSED) {
-            if ((currentTime - button.pressStartTime) > HOLD_THRESHOLD) {
-                button.state = ButtonState::HELD;
-            }
-        } else if (!currentRawState) {
-            button.state = ButtonState::RELEASED;
-        }
+    lastDownState = currentState;
+    return false;
+}
+
+
+bool ButtonManager::checkUpPressed() {
+    bool currentState = digitalRead(upPin);
+    
+    if (currentState == LOW && lastUpState == HIGH) {
+        lastUpState = currentState;
+        return true;
     }
     
-    button.lastRawState = currentRawState;
+    lastUpState = currentState;
+    return false;
 }
-
-bool ButtonManager::isUpPressed() {
-    return upButton.state == ButtonState::PRESSED;
-}
-
-bool ButtonManager::isDownPressed() {
-    return downButton.state == ButtonState::PRESSED;
-}
-
-bool ButtonManager::isUpHeld() {
-    return upButton.state == ButtonState::HELD;
-}
-
-bool ButtonManager::isDownHeld() {
-    return downButton.state == ButtonState::HELD;
-}
-
-ButtonState ButtonManager::getUpButtonState() {
-    return upButton.state;
-}
-
-ButtonState ButtonManager::getDownButtonState() {
-    return downButton.state;
-}
-

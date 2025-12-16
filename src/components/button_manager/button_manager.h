@@ -3,42 +3,20 @@
 
 #include "Arduino.h"
 
-enum class ButtonState {
-    RELEASED,
-    PRESSED,
-    HELD
-};
-
 class ButtonManager {
-    public:
-        ButtonManager();
-        void begin();
-        void update();
-        
-        bool isUpPressed();
-        bool isDownPressed();
-        bool isUpHeld();
-        bool isDownHeld();
-        ButtonState getUpButtonState();
-        ButtonState getDownButtonState();
-
-        struct Button {
-            int pin;
-            ButtonState state;
-            ButtonState lastState;
-            unsigned long lastDebounceTime;
-            unsigned long pressStartTime;
-            bool lastRawState;
-        };
-        
-    private:
-        static const int DEBOUNCE_DELAY = 50;
-        static const int HOLD_THRESHOLD = 1000;
-        void updateButton(Button &button);
-        Button upButton;
-        Button downButton;
-   
-        
-    };
+private:
+    static const int DEBOUNCE_DELAY = 50;
+    int upPin;
+    int downPin;
+    bool lastUpState;
+    bool lastDownState;
+    unsigned long lastDebounceTime;
+    
+public:
+    ButtonManager();
+    void begin();
+    bool checkDownPressed();
+    bool checkUpPressed();
+};
 
 #endif

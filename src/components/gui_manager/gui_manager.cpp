@@ -57,14 +57,14 @@ void GUIManager::displayFolder(Folder& folder) {
 void GUIManager::handleFolderInput() {
     if (!currentFolder) return;
     
-    buttonManager.update();
-    
-    if (buttonManager.isDownPressed()) {
+    if (buttonManager.checkDownPressed()) {
+        Serial.println("Handling down button press - selecting next song");
         currentFolder->selectNextSong();
         currentFolder->display(*display);
     }
     
-    if (buttonManager.isUpPressed()) {
+    if (buttonManager.checkUpPressed()) {
+        Serial.println("Handling up button press - selecting previous song");
         currentFolder->selectPreviousSong();
         currentFolder->display(*display);
     }
