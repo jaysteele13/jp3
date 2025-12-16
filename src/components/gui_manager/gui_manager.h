@@ -5,21 +5,25 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 #include "../../utils/gui/song/song.h"
+#include "../../utils/gui/folder/folder.h"
+#include "../button_manager/button_manager.h"
 
 class GUIManager {
 private:
     Adafruit_SSD1306* display;
+    ButtonManager buttonManager;
+    Folder* currentFolder;
     
 public:
     GUIManager();
     bool begin();
     void clear();
     void update();
-    void setText(int x, int y, const char* text);
-    void showSplashScreen();
 
     // GUI SCREENS
     void displaySong(Song& song);
+    void displayFolder(Folder& folder);
+    void handleFolderInput();
 };
 
 #endif

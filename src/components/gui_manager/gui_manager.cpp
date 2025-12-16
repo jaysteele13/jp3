@@ -15,6 +15,7 @@
 
 GUIManager::GUIManager() {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+    currentFolder = nullptr;
 }
 
 bool GUIManager::begin() {
@@ -22,6 +23,9 @@ bool GUIManager::begin() {
     delay(500);
 
     Wire.begin(/*SDA=*/SDA_PIN, /*SCL=*/SCL_PIN);
+    
+    // Initialise Button Manager
+    buttonManager.begin();
 
     if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
@@ -41,21 +45,28 @@ void GUIManager::update() {
     display->display();
 }
 
-void GUIManager::setText(int x, int y, const char* text) {
-    display->clearDisplay();
-    display->setTextSize(1);
-    display->setTextColor(SSD1306_WHITE);
-    display->setCursor(x, y);
-    display->println(text);
-    display->display();  // Needed or text will not appear
-}
-
-void GUIManager::showSplashScreen() {
-    // Just redisplay whatever is already rendered
-    display->display();
-    delay(2000);
-}
-
 void GUIManager::displaySong(Song& song) {
-    song.display(*display);
+            song.display(*display);
+        }
+
+void GUIManager::displayFolder(Folder& folder) {
+            currentFolder = &folder;
+            folder.display(*display);
+        }
+
+// This will need to be made more genric in the future!
+void GUIManager::handleFolderInput() {
+    if (!currentFolder) return;
+    
+    if (buttonManager.checkDownPressed()) {
+        Serial.println("Handling down button press - selecting next song");
+        currentFolder->selectNextSong();
+        currentFolder->display(*display);
+    }
+    
+    if (buttonManager.checkUpPressed()) {
+        Serial.println("Handling up button press - selecting previous song");
+        currentFolder->selectPreviousSong();
+        currentFolder->display(*display);
+    }
 }
