@@ -1,9 +1,3 @@
-// Make Dummy Call to Receive Album Name Folder, with file names
-
-// Parse these so we display song name (use scrollable text) and artist in a box.
-
-// Paginate so we can fit 2 songs on screen at once. When button is clicked we scroll down one song.
-
 #include "folder.h"
 #include "../../validation/text_validator.h"
 
