@@ -22,6 +22,8 @@ class Folder {
         SongInfo* loadSongData(int amount);
         void display(Adafruit_SSD1306 &display);
         void nextPage(int currentPage);
+        void selectNextSong();
+        void selectPreviousSong();
 
     private:
         FolderType folderType;
@@ -29,7 +31,9 @@ class Folder {
         SongInfo* songs;
         int totalSongs;
         int currentPage;
+        int selectedSongIndex;
         static const int SONGS_PER_PAGE = 2;
+        void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
 };
 
 
