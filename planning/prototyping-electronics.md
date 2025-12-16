@@ -12,9 +12,19 @@ I made an environent to compile and upload code. I get the second LED to blink t
 
 
 ### PCM5102A
+PINS NEEDED:
+- GPIO 26 [Bit Clock] (BCK)
+- GPIO 25 [Word Selct] (LRCK)
+- GPIO 27 [Data In] (DIN)
 
 
 ### SD Card Reader
+PINS NEEDED:
+- GPIO 5 [Chip Select] (CS) // could also be GPIO 2
+- GPIO 23 (MOSI)
+- GPIO 19 (MISO)
+- GPIO 18 (SCK)
+
 
 
 
@@ -36,4 +46,10 @@ When Connected to Mb102. The voltage is less than either 5v or 3.3v So this can 
 
 ### Buttons and Switches
 
+Buttons:
+- GPIO25 (up)
+- GPIO26 (down)
+- GPIO27
+- GPIO32
+- GPIO33
 
