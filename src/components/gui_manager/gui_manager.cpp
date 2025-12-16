@@ -15,6 +15,7 @@
 
 GUIManager::GUIManager() {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+    currentFolder = nullptr;
 }
 
 bool GUIManager::begin() {
@@ -22,6 +23,9 @@ bool GUIManager::begin() {
     delay(500);
 
     Wire.begin(/*SDA=*/SDA_PIN, /*SCL=*/SCL_PIN);
+    
+    // Initialise Button Manager
+    buttonManager.begin();
 
     if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
@@ -46,5 +50,22 @@ void GUIManager::displaySong(Song& song) {
         }
 
 void GUIManager::displayFolder(Folder& folder) {
+            currentFolder = &folder;
             folder.display(*display);
         }
+
+void GUIManager::handleFolderInput() {
+    if (!currentFolder) return;
+    
+    buttonManager.update();
+    
+    if (buttonManager.isDownPressed()) {
+        currentFolder->selectNextSong();
+        currentFolder->display(*display);
+    }
+    
+    if (buttonManager.isUpPressed()) {
+        currentFolder->selectPreviousSong();
+        currentFolder->display(*display);
+    }
+}

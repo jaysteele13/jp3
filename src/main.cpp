@@ -11,6 +11,7 @@ void setup() {
 }
 
 void loop() {
-  // gui.displaySong(testSong);
   gui.displayFolder(testFolder);
+  gui.handleFolderInput();
+  delay(50);
 }
