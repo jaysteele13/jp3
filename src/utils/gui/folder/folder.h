@@ -16,6 +16,17 @@ struct SongInfo {
             String artistName;
 };
 
+struct DisplayConfig {
+    static const int LINE_HEIGHT = 12;
+    static const int SCREEN_WIDTH = 128;
+    static const int SCREEN_HEIGHT = 64;
+    static const int MARGIN_X = 2;
+    static const int SELECTION_MARGIN = 4;
+    static const int DIVIDER_MARGIN = 2;
+    static const int SONG_SPACING = 4;
+    static const int INDICATOR_OFFSET = 8;
+};
+
 class Folder {
     public:
         Folder(FolderType folderType, String folderName);
@@ -33,7 +44,11 @@ class Folder {
         int currentPage;
         int selectedSongIndex;
         static const int SONGS_PER_PAGE = 2;
+        
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
+        void drawHeader(Adafruit_SSD1306 &display, int &currentY);
+        void drawDivider(Adafruit_SSD1306 &display, int &currentY);
+        void drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, bool isSelected);
 };
 
 

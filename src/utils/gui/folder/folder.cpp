@@ -45,61 +45,60 @@ SongInfo* Folder::loadSongData(int amount) {
     totalSongs = amount;
     songs = new SongInfo[totalSongs];
     for (int i = 0; i < totalSongs; ++i) {
-        songs[i].songName = "Song " + String(i + 1);
+        songs[i].songName = "Song" + String(i + 1);
         songs[i].artistName = "Artist " + String(i + 1);
     }
     return songs;
 }
 
+void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
+    TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, DisplayConfig::SCREEN_WIDTH, 0);
+    currentY += DisplayConfig::LINE_HEIGHT;
+}
+
+void Folder::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
+    display.drawLine(0, currentY, DisplayConfig::SCREEN_WIDTH, currentY, SSD1306_WHITE);
+    currentY += DisplayConfig::DIVIDER_MARGIN;
+}
+
+void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, bool isSelected) {
+    int textX = DisplayConfig::MARGIN_X;
+    
+    if (isSelected) {
+        drawSelectionBox(display, DisplayConfig::MARGIN_X - DisplayConfig::MARGIN_X, 
+                        currentY - DisplayConfig::SELECTION_MARGIN, 
+                        DisplayConfig::SCREEN_WIDTH, DisplayConfig::LINE_HEIGHT * 2 + DisplayConfig::DIVIDER_MARGIN);
+        display.setCursor(textX, currentY);
+    } else {
+        currentY += DisplayConfig::SONG_SPACING;
+    }
+
+    TextValidator::displayScrollingText(display, songs[songIndex].songName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    currentY += DisplayConfig::LINE_HEIGHT;
+
+    TextValidator::displayScrollingText(display, songs[songIndex].artistName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    currentY += DisplayConfig::LINE_HEIGHT;
+}
+
 void Folder::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
-    const int lineHeight = 12;
-    int startX = 2; // Avoid Overlap with Selection Box
     int currentY = 0;
 
-    // Get Dummy Data in Screen (Probably not best Practice but for demo purposes)
     if (songs == nullptr) {
-        songs = loadSongData(5); // Load 5 dummy songs
+        songs = loadSongData(5);
     }
 
-    // Display folder Name
-    TextValidator::displayScrollingText(display, folderName, startX, currentY, 1, 128, 0);
-    currentY += lineHeight;
-
-    // Divider
-    display.drawLine(0, currentY, 128, currentY, SSD1306_WHITE);
-    currentY += 2;
+    drawHeader(display, currentY);
+    drawDivider(display, currentY);
 
     int startSongIndex = currentPage * SONGS_PER_PAGE;
     for (int i = 0; i < SONGS_PER_PAGE; ++i) {
         int songIndex = startSongIndex + i;
         if (songIndex >= totalSongs) break;
 
-        int songStartY = currentY;
         bool isSelected = (songIndex == selectedSongIndex);
-
-        // Draw selection box if selected
-        if (isSelected) {
-            drawSelectionBox(display, startX-2, currentY - 4, 128, lineHeight * 2 + 2);
-            display.setCursor(startX, currentY);
-            // startX += 8; // Offset text after > symbol
-        }
-        else {
-            currentY += 4;
-        }
-
-        // Display song name with scrolling
-        TextValidator::displayScrollingText(display, songs[songIndex].songName, startX, currentY, 1, 128 - startX, i);
-        currentY += lineHeight;
-
-        // Display artist name with scrolling
-        TextValidator::displayScrollingText(display, songs[songIndex].artistName, startX, currentY, 1, 128 - startX, i);
-        currentY += lineHeight;
-
-        // if (isSelected) {
-        //     startX -= 8; // Reset offset for next iteration
-        // }
+        drawSong(display, songIndex, currentY, isSelected);
     }
 
     display.display();
