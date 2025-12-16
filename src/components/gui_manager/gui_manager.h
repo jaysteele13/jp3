@@ -5,6 +5,7 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 #include "../../utils/gui/song/song.h"
+#include "../../utils/gui/folder/folder.h"
 
 class GUIManager {
 private:
@@ -15,11 +16,10 @@ public:
     bool begin();
     void clear();
     void update();
-    void setText(int x, int y, const char* text);
-    void showSplashScreen();
 
     // GUI SCREENS
     void displaySong(Song& song);
+    void displayFolder(Folder& folder);
 };
 
 #endif

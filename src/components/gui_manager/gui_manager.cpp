@@ -41,21 +41,10 @@ void GUIManager::update() {
     display->display();
 }
 
-void GUIManager::setText(int x, int y, const char* text) {
-    display->clearDisplay();
-    display->setTextSize(1);
-    display->setTextColor(SSD1306_WHITE);
-    display->setCursor(x, y);
-    display->println(text);
-    display->display();  // Needed or text will not appear
-}
-
-void GUIManager::showSplashScreen() {
-    // Just redisplay whatever is already rendered
-    display->display();
-    delay(2000);
-}
-
 void GUIManager::displaySong(Song& song) {
-    song.display(*display);
-}
+            song.display(*display);
+        }
+
+void GUIManager::displayFolder(Folder& folder) {
+            folder.display(*display);
+        }

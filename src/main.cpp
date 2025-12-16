@@ -3,6 +3,7 @@
 
 GUIManager gui;
 Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
+Folder testFolder(FolderType::ALBUMS, "50 Ways to Leave Your Lover");
 
 void setup() {
   gui.begin();
@@ -10,5 +11,6 @@ void setup() {
 }
 
 void loop() {
-  gui.displaySong(testSong);
+  // gui.displaySong(testSong);
+  gui.displayFolder(testFolder);
 }
