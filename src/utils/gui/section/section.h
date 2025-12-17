@@ -7,6 +7,9 @@
 // Enum for folder type
 #include "../../enums/enums.h"
 
+// Images for patterns
+#include "iconStack.h"
+
 class Section {
     public:
         Section();
@@ -19,10 +22,8 @@ class Section {
         static const int FOLDERS_PER_PAGE = 4;
 
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
+        void drawPlaylistStack(Adafruit_SSD1306 &display);
 };
-
-
-
 
 
 #endif

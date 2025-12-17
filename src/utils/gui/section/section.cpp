@@ -18,10 +18,13 @@ void Section::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int widt
     display.drawRect(x, y, width, height, SSD1306_WHITE);
 }
 
-void Section::display(Adafruit_SSD1306 &display) {
-    // Placeholder implementation
-    display.clearDisplay();
-    
-    // Host Icons (Save in header for Section)
 
+
+void Section::display(Adafruit_SSD1306 &display) {
+    display.clearDisplay();
+
+    // Draw stacked icons on the left side
+    IconStack::drawPlaylistStack(display);
+
+    display.display();
 }
