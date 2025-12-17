@@ -2,6 +2,11 @@
 
 Section::Section() : selectedFolderIndex(0) {}
 
+static const int FRAME_WIDTH = 24;
+static const int FRAME_HEIGHT = 24;
+static const int FRAME_COUNT = 34;
+static const int FRAME_DELAY = 100;
+
 void Section::selectNextFolder() {
     if (selectedFolderIndex < FOLDERS_PER_PAGE - 1) {
         selectedFolderIndex++;
@@ -24,7 +29,7 @@ void Section::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
     // Draw stacked icons on the left side
-    IconStack::drawPlaylistStack(display);
+    IconStack::animatePlaylistBitmap(display);
 
     display.display();
 }

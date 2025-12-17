@@ -9,10 +9,11 @@ Section testSection;
 void setup() {
   gui.begin();
   //gui.displaySong(testSong);
-  gui.displaySection(testSection);
+  // gui.displaySection(testSection);
 }
 
 void loop() {
+  gui.displaySection(testSection);
   // gui.displayFolder(testFolder);
   // gui.handleFolderInput();
   // // Delay isn't so great but will optimize later (soon)
