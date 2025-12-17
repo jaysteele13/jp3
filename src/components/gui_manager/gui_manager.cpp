@@ -13,9 +13,12 @@
 #define SDA_PIN 21
 #define SCL_PIN 22
 
-GUIManager::GUIManager() {
+GUIManager::GUIManager() : lastUpdateTime(0) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     currentFolder = nullptr;
+    currentSection = nullptr;
+    currentSong = nullptr;
+    currentScreenType = ScreenType::FOLDER;
 }
 
 bool GUIManager::begin() {
@@ -42,31 +45,117 @@ void GUIManager::clear() {
 }
 
 void GUIManager::update() {
-    display->display();
+    // Adding in timing to add unpredictable delays and a controlled refresh rate
+    // also bad to keep cpu at 100% usage all the time
+    unsigned long currentTime = millis();
+    
+    if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
+        handleInput();
+        updateDisplay();
+        lastUpdateTime = currentTime;
+    }
 }
 
 void GUIManager::displaySong(Song& song) {
+            currentSong = &song;
+            currentScreenType = ScreenType::SONG;
             song.display(*display);
         }
 
 void GUIManager::displayFolder(Folder& folder) {
             currentFolder = &folder;
+            folder.screenActive = true;
+            if (currentSection) currentSection->screenActive = false;
+            currentScreenType = ScreenType::FOLDER;
             folder.display(*display);
         }
 
-// This will need to be made more genric in the future!
-void GUIManager::handleFolderInput() {
-    if (!currentFolder) return;
-    
-    if (buttonManager.checkDownPressed()) {
-        Serial.println("Handling down button press - selecting next song");
-        currentFolder->selectNextSong();
-        currentFolder->display(*display);
+void GUIManager::displaySection(Section& section) {
+            currentSection = &section;
+            section.screenActive = true;
+            if (currentFolder) currentFolder->screenActive = false;
+            currentScreenType = ScreenType::SECTION;
+            section.display(*display);
+        }
+
+void GUIManager::handleInput() {
+    // Button Logic Per Screen
+    switch (currentScreenType) {
+        case ScreenType::FOLDER:
+            if (!currentFolder || !currentFolder->screenActive) {
+                return;
+            }
+            
+            if (buttonManager.checkDownPressed()) {
+                Serial.println("Handling down button press - selecting next song");
+                currentFolder->selectNextSong();
+            }
+            
+            if (buttonManager.checkUpPressed()) {
+                Serial.println("Handling up button press - selecting previous song");
+                currentFolder->selectPreviousSong();
+            }
+            break;
+            
+        case ScreenType::SECTION:
+            if (!currentSection || !currentSection->screenActive) {
+                return;
+            }
+            
+            if (buttonManager.checkDownPressed()) {
+                Serial.println("Down button pressed - navigating to next screen");
+                currentSection->nextPage();
+            } 
+            
+            if (buttonManager.checkUpPressed()) {
+                Serial.println("Up button pressed - navigating to previous screen");
+                currentSection->previousPage();
+            } 
+            break;
+            
+        case ScreenType::SONG:
+            // Song input handling could be added here
+            break;
     }
-    
-    if (buttonManager.checkUpPressed()) {
-        Serial.println("Handling up button press - selecting previous song");
-        currentFolder->selectPreviousSong();
-        currentFolder->display(*display);
+}
+
+void GUIManager::updateDisplay() {
+    switch (currentScreenType) {
+        case ScreenType::FOLDER:
+            if (currentFolder) {
+                currentFolder->display(*display);
+            }
+            break;
+            
+        case ScreenType::SECTION:
+            if (currentSection) {
+                currentSection->display(*display);
+            }
+            break;
+            
+        case ScreenType::SONG:
+            if (currentSong) {
+                currentSong->display(*display);
+            }
+            break;
     }
+}
+
+// Navigation methods
+void GUIManager::navigateToSection() {
+    currentScreenType = ScreenType::SECTION;
+}
+
+void GUIManager::navigateToFolder(Folder& folder) {
+    currentFolder = &folder;
+    folder.screenActive = true;
+    if (currentSection) currentSection->screenActive = false;
+    currentScreenType = ScreenType::FOLDER;
+    folder.display(*display);
+}
+
+void GUIManager::navigateToSong(Song& song) {
+    currentSong = &song;
+    currentScreenType = ScreenType::SONG;
+    song.display(*display);
 }

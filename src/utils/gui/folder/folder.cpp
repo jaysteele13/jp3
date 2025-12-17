@@ -30,7 +30,8 @@ Folder::Folder(FolderType folderType, String folderName) :
     folderName(folderName), 
     totalSongs(0), 
     currentPage(0),
-    selectedSongIndex(0) {
+    selectedSongIndex(0),
+    screenActive(false) {
     songs = nullptr;
 }
 

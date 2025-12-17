@@ -5,12 +5,17 @@
 
 class ButtonManager {
 private:
-    static const int DEBOUNCE_DELAY = 50;
+    static const int DEBOUNCE_DELAY = 10;  // 10ms for responsive yet reliable input
     int upPin;
     int downPin;
     bool lastUpState;
     bool lastDownState;
-    unsigned long lastDebounceTime;
+    unsigned long lastUpDebounceTime;
+    unsigned long lastDownDebounceTime;
+    
+    // Stable states after debouncing
+    bool stableUpState;
+    bool stableDownState;
     
 public:
     ButtonManager();
