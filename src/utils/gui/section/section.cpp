@@ -30,6 +30,9 @@ void Section::display(Adafruit_SSD1306 &display) {
 
     // Draw stacked icons on the left side
     IconStack::animatePlaylistBitmap(display);
+    // IconStack::animateAlbumBitmap(display);
+    // IconStack::animateArtistBitmap(display);
+    // IconStack::animateAllSongsBitmap(display);
 
     display.display();
 }
