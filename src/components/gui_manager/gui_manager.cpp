@@ -54,6 +54,11 @@ void GUIManager::displayFolder(Folder& folder) {
             folder.display(*display);
         }
 
+void GUIManager::displaySection(Section& section) {
+            currentSection = &section;
+            section.display(*display);
+        }
+
 // This will need to be made more genric in the future!
 void GUIManager::handleFolderInput() {
     if (!currentFolder) return;

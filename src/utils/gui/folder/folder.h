@@ -5,11 +5,8 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 
-enum class FolderType {
-    ALBUMS,
-    PLAYLISTS,
-    ALL_SONGS
-};
+// Enum for folder type
+#include "../../enums/enums.h"
 
 struct SongInfo {
             String songName;
