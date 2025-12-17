@@ -51,17 +51,22 @@ void GUIManager::displaySong(Song& song) {
 
 void GUIManager::displayFolder(Folder& folder) {
             currentFolder = &folder;
+            folder.screenActive = true;
+            if (currentSection) currentSection->screenActive = false;
             folder.display(*display);
         }
 
 void GUIManager::displaySection(Section& section) {
             currentSection = &section;
+            section.screenActive = true;
+            if (currentFolder) currentFolder->screenActive = false;
             section.display(*display);
         }
 
 // This will need to be made more genric in the future!
 void GUIManager::handleFolderInput() {
-    if (!currentFolder) return;
+    // Checks to disable all other screens (optimise this)
+    if (!currentFolder || !currentFolder->screenActive) return;
     
     if (buttonManager.checkDownPressed()) {
         Serial.println("Handling down button press - selecting next song");
@@ -73,5 +78,21 @@ void GUIManager::handleFolderInput() {
         Serial.println("Handling up button press - selecting previous song");
         currentFolder->selectPreviousSong();
         currentFolder->display(*display);
+    }
+}
+
+void GUIManager::handleSectionInput() {
+    if (!currentSection || !currentSection->screenActive) return;
+    
+    if (buttonManager.checkDownPressed()) {
+        Serial.println("Handling down button press - navigating to next folder");
+        currentSection->nextPage();
+        currentSection->display(*display);
+    }
+    
+    if (buttonManager.checkUpPressed()) {
+        Serial.println("Handling up button press - navigating to previous folder");
+        currentSection->previousPage();
+        currentSection->display(*display);
     }
 }

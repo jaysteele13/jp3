@@ -32,6 +32,7 @@ class Folder {
         void nextPage(int currentPage);
         void selectNextSong();
         void selectPreviousSong();
+        bool screenActive;
 
     private:
         FolderType folderType;

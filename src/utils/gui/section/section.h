@@ -14,7 +14,7 @@ class Section {
     public:
         Section();
         void display(Adafruit_SSD1306 &display);
-        bool screenActive();
+        bool screenActive;
         void selectNextFolder();
         void selectPreviousFolder();
         void nextPage();

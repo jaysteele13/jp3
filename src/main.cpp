@@ -14,6 +14,8 @@ void setup() {
 
 void loop() {
   gui.displaySection(testSection);
+  gui.handleSectionInput();
+  delay(50);
   // gui.displayFolder(testFolder);
   // gui.handleFolderInput();
   // // Delay isn't so great but will optimize later (soon)

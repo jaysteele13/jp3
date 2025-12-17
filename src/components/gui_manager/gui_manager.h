@@ -27,6 +27,7 @@ public:
     void displayFolder(Folder& folder);
     void displaySection(Section& section);
     void handleFolderInput();
+    void handleSectionInput();
 };
 
 #endif

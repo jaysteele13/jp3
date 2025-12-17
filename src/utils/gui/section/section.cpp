@@ -1,6 +1,6 @@
 #include "section.h"
 
-Section::Section() : selectedFolderIndex(0), currentPage(0) {}
+Section::Section() : selectedFolderIndex(0), currentPage(0), screenActive(false) {}
 
 static const int FRAME_WIDTH = 24;
 static const int FRAME_HEIGHT = 24;
