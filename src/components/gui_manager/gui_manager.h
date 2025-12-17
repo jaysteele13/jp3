@@ -24,6 +24,10 @@ private:
     Song* currentSong;
     ScreenType currentScreenType;
     
+    // Non-blocking timing
+    unsigned long lastUpdateTime;
+    static const unsigned long UPDATE_INTERVAL = 50; // ms
+    
     void handleInput();
     void updateDisplay();
     

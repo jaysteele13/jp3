@@ -12,6 +12,5 @@ void setup() {
 }
 
 void loop() {
-  gui.update();  // Handles both input and display automatically
-  delay(50);
+  gui.update();  // Non-blocking update with built-in timing
 }

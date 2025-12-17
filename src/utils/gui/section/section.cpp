@@ -7,17 +7,6 @@ static const int FRAME_HEIGHT = 24;
 static const int FRAME_COUNT = 34;
 static const int FRAME_DELAY = 100;
 
-void Section::selectNextFolder() {
-    if (selectedFolderIndex < FOLDERS_PER_PAGE - 1) {
-        selectedFolderIndex++;
-    }
-}
-
-void Section::selectPreviousFolder() {
-    if (selectedFolderIndex > 0) {
-        selectedFolderIndex--;
-    }
-}
 
 void Section::nextPage() {
     if (currentPage < TOTAL_SCREENS - 1) {
@@ -30,11 +19,6 @@ void Section::previousPage() {
         currentPage--;
     }
 }
-
-void Section::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
-    display.drawRect(x, y, width, height, SSD1306_WHITE);
-}
-
 
 
 void Section::drawCurrentScreen(Adafruit_SSD1306 &display) {

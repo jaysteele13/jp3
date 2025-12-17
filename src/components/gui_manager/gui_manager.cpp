@@ -13,7 +13,7 @@
 #define SDA_PIN 21
 #define SCL_PIN 22
 
-GUIManager::GUIManager() {
+GUIManager::GUIManager() : lastUpdateTime(0) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
     currentFolder = nullptr;
     currentSection = nullptr;
@@ -45,8 +45,15 @@ void GUIManager::clear() {
 }
 
 void GUIManager::update() {
-    handleInput();
-    updateDisplay();
+    // Adding in timing to add unpredictable delays and a controlled refresh rate
+    // also bad to keep cpu at 100% usage all the time
+    unsigned long currentTime = millis();
+    
+    if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
+        handleInput();
+        updateDisplay();
+        lastUpdateTime = currentTime;
+    }
 }
 
 void GUIManager::displaySong(Song& song) {
