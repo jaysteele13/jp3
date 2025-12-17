@@ -27,13 +27,9 @@ void ButtonManager::begin() {
 bool ButtonManager::checkDownPressed() {
     bool currentState = digitalRead(downPin);
     
-    Serial.print("Down pin reading: ");
-    Serial.println(currentState);
-    
     // If state changed, reset debounce timer
     if (currentState != lastDownState) {
         lastDownDebounceTime = millis();
-        Serial.println("State changed - reset timer");
     }
     
     // Check if enough time has passed for debouncing
@@ -44,7 +40,6 @@ bool ButtonManager::checkDownPressed() {
             
             // Return true only on HIGH to LOW transition (button pressed)
             if (stableDownState == LOW) {
-                Serial.println("Down button PRESSED - returning true");
                 return true;
             }
         }
@@ -56,16 +51,11 @@ bool ButtonManager::checkDownPressed() {
 };
 
 bool ButtonManager::checkUpPressed() {
-    Serial.println("=== checkUpPressed() called ===");
     bool currentState = digitalRead(upPin);
-    
-    Serial.print("Up pin reading: ");
-    Serial.println(currentState);
     
     // If state changed, reset debounce timer
     if (currentState != lastUpState) {
         lastUpDebounceTime = millis();
-        Serial.println("Up state changed - reset timer");
     }
     
     // Check if enough time has passed for debouncing
@@ -76,7 +66,6 @@ bool ButtonManager::checkUpPressed() {
             
             // Return true only on HIGH to LOW transition (button pressed)
             if (stableUpState == LOW) {
-                Serial.println("Up button PRESSED - returning true");
                 return true;
             }
         }
@@ -84,6 +73,5 @@ bool ButtonManager::checkUpPressed() {
     
     // Update last state for next iteration
     lastUpState = currentState;
-    Serial.println("Up button NOT pressed - returning false");
     return false;
 }

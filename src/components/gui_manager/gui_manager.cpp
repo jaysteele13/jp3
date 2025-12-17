@@ -18,7 +18,7 @@ GUIManager::GUIManager() : lastUpdateTime(0) {
     currentFolder = nullptr;
     currentSection = nullptr;
     currentSong = nullptr;
-    currentScreenType = ScreenType::SECTION;
+    currentScreenType = ScreenType::FOLDER;
 }
 
 bool GUIManager::begin() {
@@ -79,16 +79,10 @@ void GUIManager::displaySection(Section& section) {
         }
 
 void GUIManager::handleInput() {
-    // Debug: Log current screen state
-    Serial.print("handleInput called - ScreenType: ");
-    Serial.println((int)currentScreenType);
-    
     // Button Logic Per Screen
     switch (currentScreenType) {
         case ScreenType::FOLDER:
-            Serial.println("In FOLDER case");
             if (!currentFolder || !currentFolder->screenActive) {
-                Serial.println("Folder not active - returning");
                 return;
             }
             
@@ -104,31 +98,22 @@ void GUIManager::handleInput() {
             break;
             
         case ScreenType::SECTION:
-            Serial.println("In SECTION case");
             if (!currentSection || !currentSection->screenActive) {
-                Serial.println("Section not active - returning");
                 return;
             }
             
-            Serial.println("Checking DOWN button...");
             if (buttonManager.checkDownPressed()) {
                 Serial.println("Down button pressed - navigating to next screen");
                 currentSection->nextPage();
-            } else {
-                Serial.println("Down button NOT pressed");
-            }
+            } 
             
-            Serial.println("Checking UP button...");
             if (buttonManager.checkUpPressed()) {
                 Serial.println("Up button pressed - navigating to previous screen");
                 currentSection->previousPage();
-            } else {
-                Serial.println("Up button NOT pressed");
-            }
+            } 
             break;
             
         case ScreenType::SONG:
-            Serial.println("In SONG case");
             // Song input handling could be added here
             break;
     }
