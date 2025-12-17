@@ -8,16 +8,10 @@ Section testSection;
 
 void setup() {
   gui.begin();
-  //gui.displaySong(testSong);
-  // gui.displaySection(testSection);
+  gui.displaySection(testSection);  // Set initial screen
 }
 
 void loop() {
-  gui.displaySection(testSection);
-  gui.handleSectionInput();
+  gui.update();  // Handles both input and display automatically
   delay(50);
-  // gui.displayFolder(testFolder);
-  // gui.handleFolderInput();
-  // // Delay isn't so great but will optimize later (soon)
-  // delay(50);
 }

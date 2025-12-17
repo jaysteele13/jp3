@@ -9,12 +9,23 @@
 #include "../../utils/gui/section/section.h"
 #include "../button_manager/button_manager.h"
 
+enum class ScreenType {
+    SONG,
+    FOLDER,
+    SECTION
+};
+
 class GUIManager {
 private:
     Adafruit_SSD1306* display;
     ButtonManager buttonManager;
     Folder* currentFolder;
     Section* currentSection;
+    Song* currentSong;
+    ScreenType currentScreenType;
+    
+    void handleInput();
+    void updateDisplay();
     
 public:
     GUIManager();
@@ -26,8 +37,11 @@ public:
     void displaySong(Song& song);
     void displayFolder(Folder& folder);
     void displaySection(Section& section);
-    void handleFolderInput();
-    void handleSectionInput();
+    
+    // Navigation methods
+    void navigateToSection();
+    void navigateToFolder(Folder& folder);
+    void navigateToSong(Song& song);
 };
 
 #endif
