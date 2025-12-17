@@ -17,11 +17,16 @@ class Section {
         bool screenActive();
         void selectNextFolder();
         void selectPreviousFolder();
+        void nextPage();
+        void previousPage();
     private:
         int selectedFolderIndex;
+        int currentPage;
         static const int FOLDERS_PER_PAGE = 4;
+        static const int TOTAL_SCREENS = 4;
 
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
+        void drawCurrentScreen(Adafruit_SSD1306 &display);
 };
 
 
