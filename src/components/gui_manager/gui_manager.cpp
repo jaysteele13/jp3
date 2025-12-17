@@ -79,10 +79,18 @@ void GUIManager::displaySection(Section& section) {
         }
 
 void GUIManager::handleInput() {
+    // Debug: Log current screen state
+    Serial.print("handleInput called - ScreenType: ");
+    Serial.println((int)currentScreenType);
+    
     // Button Logic Per Screen
     switch (currentScreenType) {
         case ScreenType::FOLDER:
-            if (!currentFolder || !currentFolder->screenActive) return;
+            Serial.println("In FOLDER case");
+            if (!currentFolder || !currentFolder->screenActive) {
+                Serial.println("Folder not active - returning");
+                return;
+            }
             
             if (buttonManager.checkDownPressed()) {
                 Serial.println("Handling down button press - selecting next song");
@@ -96,20 +104,31 @@ void GUIManager::handleInput() {
             break;
             
         case ScreenType::SECTION:
-            if (!currentSection || !currentSection->screenActive) return;
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Handling down button press - navigating to next screen");
-                currentSection->nextPage();
+            Serial.println("In SECTION case");
+            if (!currentSection || !currentSection->screenActive) {
+                Serial.println("Section not active - returning");
+                return;
             }
             
+            Serial.println("Checking DOWN button...");
+            if (buttonManager.checkDownPressed()) {
+                Serial.println("Down button pressed - navigating to next screen");
+                currentSection->nextPage();
+            } else {
+                Serial.println("Down button NOT pressed");
+            }
+            
+            Serial.println("Checking UP button...");
             if (buttonManager.checkUpPressed()) {
-                Serial.println("Handling up button press - navigating to previous screen");
+                Serial.println("Up button pressed - navigating to previous screen");
                 currentSection->previousPage();
+            } else {
+                Serial.println("Up button NOT pressed");
             }
             break;
             
         case ScreenType::SONG:
+            Serial.println("In SONG case");
             // Song input handling could be added here
             break;
     }

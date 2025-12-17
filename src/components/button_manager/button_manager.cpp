@@ -5,7 +5,10 @@ ButtonManager::ButtonManager() {
     downPin = 25;
     lastUpState = HIGH;
     lastDownState = HIGH;
-    lastDebounceTime = 0;
+    stableUpState = HIGH;
+    stableDownState = HIGH;
+    lastUpDebounceTime = 0;
+    lastDownDebounceTime = 0;
 }
 
 void ButtonManager::begin() {
@@ -22,34 +25,65 @@ void ButtonManager::begin() {
 }
 
 bool ButtonManager::checkDownPressed() {
-    // Read multiple times to ensure stable reading
-    bool reading1 = digitalRead(downPin);
-    delay(5);
-    bool reading2 = digitalRead(downPin);
-    delay(5);
-    bool reading3 = digitalRead(downPin);
+    bool currentState = digitalRead(downPin);
     
-    // Consider it pressed if at least 2 out of 3 readings are LOW
-    bool currentState = (reading1 + reading2 + reading3) <= 1;
+    Serial.print("Down pin reading: ");
+    Serial.println(currentState);
     
-    if (currentState == LOW && lastDownState == HIGH) {
-        lastDownState = currentState;
-        return true;
+    // If state changed, reset debounce timer
+    if (currentState != lastDownState) {
+        lastDownDebounceTime = millis();
+        Serial.println("State changed - reset timer");
     }
     
+    // Check if enough time has passed for debouncing
+    if ((millis() - lastDownDebounceTime) > DEBOUNCE_DELAY) {
+        // Only update stable state if it's different
+        if (currentState != stableDownState) {
+            stableDownState = currentState;
+            
+            // Return true only on HIGH to LOW transition (button pressed)
+            if (stableDownState == LOW) {
+                Serial.println("Down button PRESSED - returning true");
+                return true;
+            }
+        }
+    }
+    
+    // Update last state for next iteration
     lastDownState = currentState;
     return false;
-}
-
+};
 
 bool ButtonManager::checkUpPressed() {
+    Serial.println("=== checkUpPressed() called ===");
     bool currentState = digitalRead(upPin);
     
-    if (currentState == LOW && lastUpState == HIGH) {
-        lastUpState = currentState;
-        return true;
+    Serial.print("Up pin reading: ");
+    Serial.println(currentState);
+    
+    // If state changed, reset debounce timer
+    if (currentState != lastUpState) {
+        lastUpDebounceTime = millis();
+        Serial.println("Up state changed - reset timer");
     }
     
+    // Check if enough time has passed for debouncing
+    if ((millis() - lastUpDebounceTime) > DEBOUNCE_DELAY) {
+        // Only update stable state if it's different
+        if (currentState != stableUpState) {
+            stableUpState = currentState;
+            
+            // Return true only on HIGH to LOW transition (button pressed)
+            if (stableUpState == LOW) {
+                Serial.println("Up button PRESSED - returning true");
+                return true;
+            }
+        }
+    }
+    
+    // Update last state for next iteration
     lastUpState = currentState;
+    Serial.println("Up button NOT pressed - returning false");
     return false;
 }
