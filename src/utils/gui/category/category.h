@@ -19,10 +19,11 @@ struct CategoryConfig {
     static const int SCREEN_WIDTH = 128;
     static const int SCREEN_HEIGHT = 64;
     static const int MARGIN_X = 2;
+    static const int CENTRE_ALBUM_BITMAP_SPACING = 4;
     static const int DIVIDER_MARGIN = 2;
     static const int FOLDER_SPACING = 2;
     static const int ALBUM_SPACING = 6; // Nicer spacing for albums
-    static const int INDICATOR_OFFSET = 8;
+    static const int INDICATOR_OFFSET = 2;
     static const int FOLDERS_PER_PAGE = 4; // Default for playlists/artists
     static const int ALBUMS_PER_PAGE = 2;
 };

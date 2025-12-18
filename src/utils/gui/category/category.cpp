@@ -99,8 +99,13 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     
     if (isSelected) {
         // Draw small bitmap icon beside the selected folder
-        drawSmallBitmap(display, pointerX, currentY);
-        textX = pointerX + 14; // Leave space for the small bitmap
+        if (isAlbum) {
+            drawSmallBitmap(display, pointerX, (currentY+ (CategoryConfig::CENTRE_ALBUM_BITMAP_SPACING))); // to centre bitmap with Albums
+        }
+        else {
+            drawSmallBitmap(display, pointerX, (currentY-2)); // to centre bitmap
+        }
+        textX = pointerX + 16; // Leave space for the small bitmap
     } else if (!isAlbum) {
         // Only add static spacing for non-album categories
         currentY += CategoryConfig::FOLDER_SPACING;
@@ -116,20 +121,21 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
         currentY += CategoryConfig::LINE_HEIGHT;
     }
 
-    // Draw dividers based on category type
-    if (isAlbum) {
-        // For albums: draw divider between first and last records only
-        // This will be handled in the display function
-    } else if (isArtist || isPlaylist) {
-        // For artists and playlists: draw divider after every field
-        drawDivider(display, currentY);
-    }
+    // // Draw dividers based on category type
+    // if (isAlbum) {
+    //     // For albums: draw divider between first and last records only
+    //     // This will be handled in the display function
+    // } else if (isArtist || isPlaylist) {
+    //     // For artists and playlists: draw divider after every field
+    //     currentY -= CategoryConfig::FOLDER_SPACING; // Remove extra spacing before divider
+    //     drawDivider(display, currentY);
+    // }
 }
 
 void Category::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
-    int currentY = 0;
+    int currentY = 2; // offset for bitmaps
 
     if (categories == nullptr) {
         categories = loadCategoryData(5);
@@ -160,6 +166,7 @@ void Category::display(Adafruit_SSD1306 &display) {
         
         // For albums: draw divider between first and last records only
         if (isAlbum && i < foldersPerPage - 1 && folderIndex < totalCategories - 1) {
+            
             drawDivider(display, currentY);
             currentY += albumSpacing; // Add spacing after divider for albums
         }
