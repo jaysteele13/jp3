@@ -11,6 +11,9 @@
 // Text Validator for scrolling text
 #include "../../validation/text_validator.h"
 
+// Dummy data for albums
+#include "../../dummy_data/dummy.h"
+
 
 
 struct DisplayConfig {
