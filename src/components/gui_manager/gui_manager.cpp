@@ -13,13 +13,9 @@
 #define SDA_PIN 21
 #define SCL_PIN 22
 
-GUIManager::GUIManager() : lastUpdateTime(0) {
+GUIManager::GUIManager() 
+    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    currentFolder = nullptr;
-    currentSection = nullptr;
-    currentSong = nullptr;
-    currentCategory = nullptr;
-    currentScreenType = ScreenType::FOLDER;
 }
 
 bool GUIManager::begin() {
@@ -51,143 +47,60 @@ void GUIManager::update() {
     unsigned long currentTime = millis();
     
     if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
-        handleInput();
-        updateDisplay();
+        // Handle input from current screen
+        ScreenBase* currentScreen = navigator.current();
+        if (currentScreen) {
+            currentScreen->handleInput(buttonManager);
+        }
+        
+        // Update non-rendering state
+        navigator.update();
+        
+        // Render to display (handles animations automatically)
+        navigator.render(*display);
+        
         lastUpdateTime = currentTime;
     }
 }
 
-void GUIManager::displaySong(Song& song) {
-            currentSong = &song;
-            currentScreenType = ScreenType::SONG;
-            song.display(*display);
-        }
-
-void GUIManager::displayFolder(Folder& folder) {
-            currentFolder = &folder;
-            folder.screenActive = true;
-            if (currentSection) currentSection->screenActive = false;
-            currentScreenType = ScreenType::FOLDER;
-            folder.display(*display);
-        }
-
-void GUIManager::displaySection(Section& section) {
-            currentSection = &section;
-            section.screenActive = true;
-            if (currentFolder) currentFolder->screenActive = false;
-            currentScreenType = ScreenType::SECTION;
-            section.display(*display);
-        }
-
-void GUIManager::displayCategory(Category& category) {
-    currentCategory = &category;
-    category.screenActive = true;
-    if (currentFolder) currentFolder->screenActive = false;
-    if (currentSection) currentSection->screenActive = false; // make a private function to hnadle this all these repeated if statements are brutal!
-    currentScreenType = ScreenType::CATEGORY; 
-    category.display(*display);
-}
-
-// Handles Button Input
-void GUIManager::handleInput() {
-    // Button Logic Per Screen
-    switch (currentScreenType) {
-        case ScreenType::FOLDER:
-            if (!currentFolder || !currentFolder->screenActive) {
-                return;
-            }
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Handling down button press - selecting next song");
-                currentFolder->selectNextSong();
-            }
-            
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Handling up button press - selecting previous song");
-                currentFolder->selectPreviousSong();
-            }
-            break;
-            
-        case ScreenType::SECTION:
-            if (!currentSection || !currentSection->screenActive) {
-                return;
-            }
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Down button pressed - navigating to next screen");
-                currentSection->nextPage();
-            } 
-            
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Up button pressed - navigating to previous screen");
-                currentSection->previousPage();
-            } 
-            break;
-
-        case ScreenType::CATEGORY:
-            if (!currentCategory || !currentCategory->screenActive) {
-                return;
-            }
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Down button pressed - navigating to next category");
-                currentCategory->selectNextFolder();
-            } 
-            
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Up button pressed - navigating to previous category");
-                currentCategory->selectPreviousFolder();
-            } 
-            break;
-            
-        case ScreenType::SONG:
-            // Song input handling could be added here
-            break;
+void GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
+    if (screen) {
+        navigator.push(screen, animation, 300);  // 300ms animation duration
     }
 }
 
-void GUIManager::updateDisplay() {
-    switch (currentScreenType) {
-        case ScreenType::FOLDER:
-            if (currentFolder) {
-                currentFolder->display(*display);
-            }
-            break;
-            
-        case ScreenType::SECTION:
-            if (currentSection) {
-                currentSection->display(*display);
-            }
-            break;
-            
-        case ScreenType::SONG:
-            if (currentSong) {
-                currentSong->display(*display);
-            }
-            break;
-        case ScreenType::CATEGORY:
-            if (currentCategory) {
-                currentCategory->display(*display);
-            }
-            break;
+void GUIManager::popScreen(TransitionType animation) {
+    navigator.pop(animation, 300);  // 300ms animation duration
+}
+
+void GUIManager::displayCategory(Category* category) {
+    if (category) {
+        pushScreen(category, TransitionType::SLIDE_LEFT);
     }
 }
 
-// Navigation methods
-void GUIManager::navigateToSection() {
-    currentScreenType = ScreenType::SECTION;
+void GUIManager::displaySection(Section* section) {
+    if (section) {
+        pushScreen(section, TransitionType::SLIDE_LEFT);
+    }
 }
 
-void GUIManager::navigateToFolder(Folder& folder) {
-    currentFolder = &folder;
-    folder.screenActive = true;
-    if (currentSection) currentSection->screenActive = false;
-    currentScreenType = ScreenType::FOLDER;
-    folder.display(*display);
+void GUIManager::displayFolder(Folder* folder) {
+    if (folder) {
+        pushScreen(folder, TransitionType::SLIDE_LEFT);
+    }
 }
 
-void GUIManager::navigateToSong(Song& song) {
-    currentSong = &song;
-    currentScreenType = ScreenType::SONG;
-    song.display(*display);
+void GUIManager::displaySong(Song* song) {
+    if (song) {
+        pushScreen(song, TransitionType::SLIDE_LEFT);
+    }
+}
+
+bool GUIManager::canGoBack() const {
+    return navigator.canGoBack();
+}
+
+size_t GUIManager::getStackDepth() const {
+    return navigator.getStackDepth();
 }

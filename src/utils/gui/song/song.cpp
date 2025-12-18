@@ -1,5 +1,17 @@
 #include "song.h"
 #include "../../validation/text_validator.h"
+#include "../../../components/button_manager/button_manager.h"
+
+void Song::handleInput(ButtonManager& buttons) {
+    // Song screen can have playback controls via buttons
+    if (buttons.checkDownPressed()) {
+        Serial.println("Song: Down button pressed");
+    }
+    
+    if (buttons.checkUpPressed()) {
+        Serial.println("Song: Up button pressed");
+    }
+}
 
 Song::Song(String title, int duration, String album, String artist, String playlist) :
     songTitle(title),

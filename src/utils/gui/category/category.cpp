@@ -1,6 +1,19 @@
 #include "category.h"
+#include "../../../components/button_manager/button_manager.h"
 
-Category::Category(CategoryType categoryType) : categoryType(categoryType), totalCategories(0), currentPage(0), selectedFolderIndex(0), screenActive(false) {
+void Category::handleInput(ButtonManager& buttons) {
+    if (buttons.checkDownPressed()) {
+        Serial.println("Category: Down button pressed - navigating to next category");
+        selectNextFolder();
+    }
+    
+    if (buttons.checkUpPressed()) {
+        Serial.println("Category: Up button pressed - navigating to previous category");
+        selectPreviousFolder();
+    }
+}
+
+Category::Category(CategoryType categoryType) : categoryType(categoryType), totalCategories(0), currentPage(0), selectedFolderIndex(0) {
     categories = nullptr;
     switch (categoryType) {
         case CategoryType::ALBUMS:
@@ -13,7 +26,7 @@ Category::Category(CategoryType categoryType) : categoryType(categoryType), tota
             categoryName = "Artists";
             break;
     }
-    screenActive = false;
+    
 }
 
 CategoryInfo* Category::loadCategoryData(int amount) {

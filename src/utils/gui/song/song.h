@@ -4,8 +4,11 @@
 #include "Arduino.h"
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
+#include "../../navigation/screen_base.h"
 
-class Song {
+class ButtonManager;  // Forward declaration
+
+class Song : public ScreenBase {
 public:
     Song(String title, int duration, String album, String artist, String playlist = "");
 
@@ -13,7 +16,9 @@ public:
     void stop();
     void pause();
     void resume();
-    void display(Adafruit_SSD1306 &display);
+    void display(Adafruit_SSD1306 &display) override;
+    void handleInput(ButtonManager& buttons) override;
+    String getScreenName() const override { return songTitle; }
 
 private:
     String songTitle;

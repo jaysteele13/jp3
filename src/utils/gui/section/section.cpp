@@ -1,6 +1,19 @@
 #include "section.h"
+#include "../../../components/button_manager/button_manager.h"
 
-Section::Section() : selectedFolderIndex(0), currentPage(0), screenActive(false) {}
+void Section::handleInput(ButtonManager& buttons) {
+    if (buttons.checkDownPressed()) {
+        Serial.println("Section: Down button pressed - navigating to next screen");
+        nextPage();
+    }
+    
+    if (buttons.checkUpPressed()) {
+        Serial.println("Section: Up button pressed - navigating to previous screen");
+        previousPage();
+    }
+}
+
+Section::Section() : selectedFolderIndex(0), currentPage(0) {}
 
 static const int FRAME_WIDTH = 24;
 static const int FRAME_HEIGHT = 24;
