@@ -59,3 +59,18 @@ void Section::display(Adafruit_SSD1306 &display) {
 
     display.display();
 }
+
+FolderType Section::getSelectedFolderType() const {
+    switch (currentPage) {
+        case 0:
+            return FolderType::PLAYLISTS;
+        case 1:
+            return FolderType::ALBUMS;
+        case 2:
+            return FolderType::ARTISTS;
+        case 3:
+            return FolderType::ALL_SONGS;
+        default:
+            return FolderType::ALBUMS;
+    }
+}

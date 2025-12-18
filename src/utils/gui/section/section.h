@@ -22,6 +22,10 @@ class Section : public ScreenBase {
         void handleInput(ButtonManager& buttons) override;
         void nextPage();
         void previousPage();
+        
+        // Get the currently selected folder type
+        FolderType getSelectedFolderType() const;
+        
         ScreenType getScreenType() const override { return ScreenType::SECTION; }
         String getScreenName() const override { return "Section"; }
     private:

@@ -29,7 +29,7 @@ Category::Category(CategoryType categoryType) : categoryType(categoryType), tota
     
 }
 
-CategoryInfo* Category::loadCategoryData(int amount) {
+CategoryInfo* Category::loadCategoryData() {
     // Try to load real data first based on category type
     int dataCount = 0;
     CategoryInfo* data = nullptr;
@@ -62,27 +62,11 @@ CategoryInfo* Category::loadCategoryData(int amount) {
     }
     
     // Fallback to dummy data if real data not available
-    totalCategories = amount;
+    totalCategories = 1;
     categories = new CategoryInfo[totalCategories];
-    switch(categoryType) {
-        case CategoryType::ALBUMS:
-            for (int i = 0; i < totalCategories; ++i) {
-                categories[i].categoryName = "Album" + String(i + 1);
-                categories[i].artistName = "Artist " + String(i + 1);
-            }
-            break;
-        case CategoryType::PLAYLISTS:
-            for (int i = 0; i < totalCategories; ++i) {
-                categories[i].categoryName = "Playlist" + String(i + 1);
-                categories[i].artistName = "";
-            }
-            break;
-        case CategoryType::ARTISTS:
-            for (int i = 0; i < totalCategories; ++i) {
-                categories[i].categoryName = "Artist" + String(i + 1);
-                categories[i].artistName = ""; // Artists don't need a secondary field
-            }
-            break;
+    for (int i = 0; i < totalCategories; ++i) {
+        categories[i].categoryName = "No Data";
+        categories[i].artistName = "";
     }
 
     return categories;
@@ -171,7 +155,7 @@ void Category::display(Adafruit_SSD1306 &display) {
     int currentY = 2; // offset for bitmaps
 
     if (categories == nullptr) {
-        categories = loadCategoryData(5);
+        categories = loadCategoryData();
     }
 
     // Display folders for current page
@@ -209,35 +193,35 @@ void Category::display(Adafruit_SSD1306 &display) {
 }
 
 
+void Category::setCategoryType(CategoryType type) {
+    categoryType = type;
+    switch (categoryType) {
+        case CategoryType::ALBUMS:
+            categoryName = "Albums";
+            break;
+        case CategoryType::PLAYLISTS:
+            categoryName = "Playlists";
+            break;
+        case CategoryType::ARTISTS:
+            categoryName = "Artists";
+            break;
+    }
+    // Reset selection when category changes
+    selectedFolderIndex = 0;
+    currentPage = 0;
+    
+    // Reload data for the new category type
+    loadCategoryData();
+}
 
-// void Category::display(Adafruit_SSD1306 &display) {
-//     display.clearDisplay();
+CategoryInfo* Category::getSelectedCategory() const {
+    if (categories == nullptr || selectedFolderIndex >= totalCategories) {
+        return nullptr;
+    }
+    return &categories[selectedFolderIndex];
+}
 
-//     int currentY = 0;
-
-//     if (categories == nullptr) {
-//         categories = loadCategoryData(5);
-//     }
-
-//     // Show header and divider only on first page
-//     if (shouldShowHeader()) {
-//         drawHeader(display, currentY);
-//         drawDivider(display, currentY);
-//     }
-
-//     // Get current page configuration
-//     int foldersPerPage = getFoldersPerPage();
-//     int startFolderIndex = getStartFolderIndex();
-
-//     // Display folders for current page
-//     for (int i = 0; i < foldersPerPage; ++i) {
-//         int folderIndex = startFolderIndex + i;
-//         if (folderIndex >= totalCategories) break;
-
-//         bool isSelected = (folderIndex == selectedFolderIndex);
-//         drawFolder(display, folderIndex, currentY, isSelected);
-//     }
-
-//     display.display();
-// }
-
+void Category::resetSelection() {
+    selectedFolderIndex = 0;
+    currentPage = 0;
+}

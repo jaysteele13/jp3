@@ -44,9 +44,19 @@ class Category : public ScreenBase {
         Category(CategoryType categoryType);
         void display(Adafruit_SSD1306 &display) override;
         void handleInput(ButtonManager& buttons) override;
-        CategoryInfo* loadCategoryData(int amount);
+        CategoryInfo* loadCategoryData();
         void selectNextFolder();
         void selectPreviousFolder();
+        
+        // Set the category type when navigating to this screen
+        void setCategoryType(CategoryType type);
+        
+        // Get the currently selected category item
+        CategoryInfo* getSelectedCategory() const;
+        
+        // Reset selection and page
+        void resetSelection();
+        
         ScreenType getScreenType() const override { return ScreenType::CATEGORY; }
         String getScreenName() const override { return categoryName; }
 

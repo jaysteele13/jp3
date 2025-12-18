@@ -157,7 +157,21 @@ void GUIManager::handleForwardNavigation() {
         case ScreenType::SECTION:
             // Section -> Category
             if (cachedCategory) {
-                Serial.println("NAV: Section -> Category (Select pressed)");
+                Section* section = static_cast<Section*>(current);
+                FolderType folderType = section->getSelectedFolderType();
+                
+                // Reset category state before setting new data
+                cachedCategory->resetSelection();
+                
+                // Convert FolderType to CategoryType
+                CategoryType catType = (folderType == FolderType::PLAYLISTS) ? CategoryType::PLAYLISTS :
+                                       (folderType == FolderType::ARTISTS) ? CategoryType::ARTISTS :
+                                       CategoryType::ALBUMS;
+                
+                cachedCategory->setCategoryType(catType);
+                Serial.print("NAV: Section -> Category (");
+                Serial.print((int)catType);
+                Serial.println(")");
                 result = displayCategory(cachedCategory);
             }
             break;
@@ -165,7 +179,14 @@ void GUIManager::handleForwardNavigation() {
         case ScreenType::CATEGORY:
             // Category -> Folder
             if (cachedFolder) {
-                Serial.println("NAV: Category -> Folder (Select pressed)");
+                Category* category = static_cast<Category*>(current);
+                CategoryInfo* selected = category->getSelectedCategory();
+                
+                if (selected) {
+                    Serial.print("NAV: Category -> Folder (");
+                    Serial.print(selected->categoryName);
+                    Serial.println(")");
+                }
                 result = displayFolder(cachedFolder);
             }
             break;
@@ -173,7 +194,7 @@ void GUIManager::handleForwardNavigation() {
         case ScreenType::FOLDER:
             // Folder -> Song
             if (cachedSong) {
-                Serial.println("NAV: Folder -> Song (Select pressed)");
+                Serial.println("NAV: Folder -> Song");
                 result = displaySong(cachedSong);
             }
             break;
