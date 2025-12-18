@@ -23,7 +23,7 @@ CategoryInfo* Category::loadCategoryData(int amount) {
     
     switch(categoryType) {
         case CategoryType::ALBUMS:
-            data = getAllAlbums(dataCount);
+            data = dummyData::getAllAlbums(dataCount);
             if (data != nullptr && dataCount > 0) {
                 totalCategories = dataCount;
                 categories = data;
@@ -31,7 +31,7 @@ CategoryInfo* Category::loadCategoryData(int amount) {
             }
             break;
         case CategoryType::ARTISTS:
-            data = getAllArtists(dataCount);
+            data = dummyData::getAllArtists(dataCount);
             if (data != nullptr && dataCount > 0) {
                 totalCategories = dataCount;
                 categories = data;
@@ -39,7 +39,7 @@ CategoryInfo* Category::loadCategoryData(int amount) {
             }
             break;
         case CategoryType::PLAYLISTS:
-            data = getAllPlaylists(dataCount);
+            data = dummyData::getAllPlaylists(dataCount);
             if (data != nullptr && dataCount > 0) {
                 totalCategories = dataCount;
                 categories = data;

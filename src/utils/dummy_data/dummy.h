@@ -3,21 +3,25 @@
 
 #include "../enums/enums.h"
 
+class dummyData {
+public:
+    // Get songs for a specific album
+    static SongInfo* getSongsForAlbum(String albumName, int& count);
 
-// Get songs for a specific album
-SongInfo* getSongsForAlbum(String albumName, int& count);
+    // Get all songs for a specific artist (aggregates across albums)
+    static SongInfo* getSongsForArtist(String artistName, int& count);
 
-// Get all songs for a specific artist (aggregates across albums)
-SongInfo* getSongsForArtist(String artistName, int& count);
+    // Get all songs for a specific playlist
+    static SongInfo* getSongsForPlaylist(String playlistName, int& count);
 
-// Get all albums as CategoryInfo
-CategoryInfo* getAllAlbums(int& count);
+    // Get all albums as CategoryInfo
+    static CategoryInfo* getAllAlbums(int& count);
 
-// Get all unique artists as CategoryInfo
-CategoryInfo* getAllArtists(int& count);
+    // Get all unique artists as CategoryInfo
+    static CategoryInfo* getAllArtists(int& count);
 
-// Get all playlists as CategoryInfo
-CategoryInfo* getAllPlaylists(int& count);
-
+    // Get all playlists as CategoryInfo
+    static CategoryInfo* getAllPlaylists(int& count);
+};
 
 #endif

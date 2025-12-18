@@ -41,11 +41,18 @@ SongInfo* Folder::loadSongData(int amount) {
     SongInfo* songData = nullptr;
     
     if (folderType == FolderType::ALBUMS) {
-        songData = getSongsForAlbum(folderName, dataCount);
+        songData = dummyData::getSongsForAlbum(folderName, dataCount);
     } else if (folderType == FolderType::ARTISTS) {
-        songData = getSongsForArtist(folderName, dataCount);
+        songData = dummyData::getSongsForArtist(folderName, dataCount);
+    } else if (folderType == FolderType::PLAYLISTS) {
+        songData = dummyData::getSongsForPlaylist(folderName, dataCount);
     }
-    
+    // } else if (folderType == FolderType::ALL_SONGS) {
+    //     songData = getAllSongs(dataCount);
+    // }
+
+
+    // If song data isn't null return
     if (songData != nullptr && dataCount > 0) {
         // Use real data
         totalSongs = dataCount;
@@ -53,16 +60,14 @@ SongInfo* Folder::loadSongData(int amount) {
         return songs;
     }
     
-    // Fallback to dummy data if not found
-    totalSongs = amount;
-    songs = new SongInfo[totalSongs];
-    for (int i = 0; i < totalSongs; ++i) {
-        songs[i].songName = "Song" + String(i + 1);
-        songs[i].artistName = "Artist " + String(i + 1);
-        songs[i].duration = 180 + i * 10; // dummy duration in seconds
-    }
+    SongInfo* noSong = new SongInfo[1];
+    noSong[0].songName = "No Songs Found";
+    noSong[0].artistName = "";
+    totalSongs = 1;
+    songs = noSong;
     return songs;
 }
+
 
 void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
     TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, DisplayConfig::SCREEN_WIDTH, 0);
