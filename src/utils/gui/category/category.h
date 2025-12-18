@@ -11,12 +11,15 @@
 
 // Include Text validator for scrolling text
 #include "../../validation/text_validator.h"
+// Include small bitmaps
+#include "small_bitmaps.h"
 
 struct CategoryConfig {
     static const int LINE_HEIGHT = 12;
     static const int SCREEN_WIDTH = 128;
     static const int SCREEN_HEIGHT = 64;
     static const int MARGIN_X = 2;
+    static const int DIVIDER_MARGIN = 2;
     static const int FOLDER_SPACING = 2;
     static const int ALBUM_SPACING = 6; // Nicer spacing for albums
     static const int INDICATOR_OFFSET = 8;
@@ -47,8 +50,9 @@ class Category {
         int selectedFolderIndex;
         
         void drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected);
-        void drawPointer(Adafruit_SSD1306 &display, int x, int y);
+        void drawSmallBitmap(Adafruit_SSD1306 &display, int x, int y);
         int getFoldersPerPage();
+        void drawDivider(Adafruit_SSD1306 &display, int &currentY);
 };
 
 #endif

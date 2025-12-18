@@ -71,9 +71,23 @@ void Category::selectPreviousFolder() {
     }
 }
 
-void Category::drawPointer(Adafruit_SSD1306 &display, int x, int y) {
-    // Draw a simple triangle pointer that points right
-    display.fillTriangle(x, y + 3, x + 6, y, x + 6, y + 6, SSD1306_WHITE);
+void Category::drawSmallBitmap(Adafruit_SSD1306 &display, int x, int y) {
+    switch (categoryType) {
+        case CategoryType::ALBUMS:
+            display.drawBitmap(x, y, small_album_bitmap, 12, 12, SSD1306_WHITE);
+            break;
+        case CategoryType::PLAYLISTS:
+            display.drawBitmap(x, y, small_playlist_bitmap, 12, 12, SSD1306_WHITE);
+            break;
+        case CategoryType::ARTISTS:
+            display.drawBitmap(x, y, small_artist_bitmap, 12, 12, SSD1306_WHITE);
+            break;
+    }
+}
+
+void Category::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
+    display.drawLine(0, currentY, CategoryConfig::SCREEN_WIDTH, currentY, SSD1306_WHITE);
+    currentY += CategoryConfig::DIVIDER_MARGIN;
 }
 
 void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected) {
@@ -83,12 +97,13 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     int spacing = isAlbum ? CategoryConfig::ALBUM_SPACING : CategoryConfig::FOLDER_SPACING;
     
     if (isSelected) {
-        // Draw pointer icon beside the selected folder
-        drawPointer(display, pointerX, currentY);
-        textX = pointerX + 10; // Leave space for the pointer
+        // Draw small bitmap icon beside the selected folder
+        drawSmallBitmap(display, pointerX, currentY);
+        textX = pointerX + 14; // Leave space for the small bitmap
     } else {
         currentY += spacing;
     }
+    drawDivider(display, currentY);
 
     // Display folder name (category name)
     TextValidator::displayScrollingText(display, categories[folderIndex].categoryName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex);
