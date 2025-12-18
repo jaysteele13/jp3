@@ -36,36 +36,12 @@ CategoryInfo* Category::loadCategoryData(int amount) {
     return categories;
 }
 
-void Category::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
-    // Display Category name with Icon!
-    TextValidator::displayScrollingText(display, categoryName, CategoryConfig::MARGIN_X, currentY, 2, CategoryConfig::SCREEN_WIDTH, 0);
-    currentY += (CategoryConfig::LINE_HEIGHT + CategoryConfig::DIVIDER_MARGIN); // Size Text is big so twice as big of a difference
-}
-
-void Category::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
-    // Create a dynamic zigzag pattern divider
-    int amplitude = 2;
-    int wavelength = 8;
-    
-    for (int x = 0; x < CategoryConfig::SCREEN_WIDTH; x += wavelength) {
-        int nextX = (x + wavelength < CategoryConfig::SCREEN_WIDTH) ? x + wavelength : CategoryConfig::SCREEN_WIDTH;
-        display.drawLine(x, currentY, nextX, currentY + (x / wavelength % 2 == 0 ? amplitude : -amplitude), SSD1306_WHITE);
-    }
-    
-    currentY += CategoryConfig::DIVIDER_MARGIN + amplitude;
-}
-
 void Category::selectNextFolder() {
     if (selectedFolderIndex < totalCategories - 1) {
         selectedFolderIndex++;
-        // Update current page if needed based on folder positions
-        if (currentPage == 0 && selectedFolderIndex >= 2) {
-            currentPage = 1; // Move to page 1 when selecting folder 2
-        } else if (currentPage > 0) {
-            int currentPageEnd = getStartFolderIndex() + getFoldersPerPage();
-            if (selectedFolderIndex >= currentPageEnd) {
-                currentPage++;
-            }
+        // Update current page if needed
+        if (selectedFolderIndex >= (currentPage + 1) * CategoryConfig::FOLDERS_PER_PAGE) {
+            currentPage++;
         }
     }
 }
@@ -73,14 +49,9 @@ void Category::selectNextFolder() {
 void Category::selectPreviousFolder() {
     if (selectedFolderIndex > 0) {
         selectedFolderIndex--;
-        // Update current page if needed based on folder positions
-        if (currentPage > 1) {
-            int currentPageStart = getStartFolderIndex();
-            if (selectedFolderIndex < currentPageStart) {
-                currentPage--;
-            }
-        } else if (currentPage == 1 && selectedFolderIndex < 2) {
-            currentPage = 0; // Move back to page 0 when selecting folder 0-1
+        // Update current page if needed
+        if (selectedFolderIndex < currentPage * CategoryConfig::FOLDERS_PER_PAGE) {
+            currentPage--;
         }
     }
 }
@@ -113,32 +84,6 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     }
 }
 
-bool Category::shouldShowHeader() {
-    return currentPage == 0;
-}
-
-int Category::getFoldersPerPage() {
-    return shouldShowHeader() ? 2 : FOLDERS_PER_PAGE;
-}
-
-int Category::getHeaderHeight() {
-    if (!shouldShowHeader()) return 0;
-    
-    int headerHeight = CategoryConfig::LINE_HEIGHT + CategoryConfig::DIVIDER_MARGIN;
-    headerHeight += CategoryConfig::DIVIDER_MARGIN + 2; // Divider height + margin
-    return headerHeight;
-}
-
-int Category::getStartFolderIndex() {
-    // Page 0 has 2 folders, all other pages have 4 folders
-    if (currentPage == 0) {
-        return 0;
-    } else {
-        // Account for the 2 folders on page 0, then calculate remaining pages
-        return 2 + (currentPage - 1) * FOLDERS_PER_PAGE;
-    }
-}
-
 void Category::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
@@ -148,18 +93,9 @@ void Category::display(Adafruit_SSD1306 &display) {
         categories = loadCategoryData(5);
     }
 
-    // Show header and divider only on first page
-    if (shouldShowHeader()) {
-        drawHeader(display, currentY);
-        drawDivider(display, currentY);
-    }
-
-    // Get current page configuration
-    int foldersPerPage = getFoldersPerPage();
-    int startFolderIndex = getStartFolderIndex();
-
     // Display folders for current page
-    for (int i = 0; i < foldersPerPage; ++i) {
+    int startFolderIndex = currentPage * CategoryConfig::FOLDERS_PER_PAGE;
+    for (int i = 0; i < CategoryConfig::FOLDERS_PER_PAGE; ++i) {
         int folderIndex = startFolderIndex + i;
         if (folderIndex >= totalCategories) break;
 
@@ -169,4 +105,37 @@ void Category::display(Adafruit_SSD1306 &display) {
 
     display.display();
 }
+
+
+
+// void Category::display(Adafruit_SSD1306 &display) {
+//     display.clearDisplay();
+
+//     int currentY = 0;
+
+//     if (categories == nullptr) {
+//         categories = loadCategoryData(5);
+//     }
+
+//     // Show header and divider only on first page
+//     if (shouldShowHeader()) {
+//         drawHeader(display, currentY);
+//         drawDivider(display, currentY);
+//     }
+
+//     // Get current page configuration
+//     int foldersPerPage = getFoldersPerPage();
+//     int startFolderIndex = getStartFolderIndex();
+
+//     // Display folders for current page
+//     for (int i = 0; i < foldersPerPage; ++i) {
+//         int folderIndex = startFolderIndex + i;
+//         if (folderIndex >= totalCategories) break;
+
+//         bool isSelected = (folderIndex == selectedFolderIndex);
+//         drawFolder(display, folderIndex, currentY, isSelected);
+//     }
+
+//     display.display();
+// }
 

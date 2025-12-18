@@ -17,10 +17,9 @@ struct CategoryConfig {
     static const int SCREEN_WIDTH = 128;
     static const int SCREEN_HEIGHT = 64;
     static const int MARGIN_X = 2;
-    static const int SELECTION_MARGIN = 4;
-    static const int DIVIDER_MARGIN = 8;
-    static const int FOLDER_SPACING = 4;
+    static const int FOLDER_SPACING = 2;
     static const int INDICATOR_OFFSET = 8;
+    static const int FOLDERS_PER_PAGE = 5;
 };
 
 struct CategoryInfo {
@@ -44,16 +43,9 @@ class Category {
         int totalCategories;
         int currentPage;
         int selectedFolderIndex;
-        static const int FOLDERS_PER_PAGE = 4;
         
-        void drawHeader(Adafruit_SSD1306 &display, int &currentY);
-        void drawDivider(Adafruit_SSD1306 &display, int &currentY);
         void drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected);
         void drawPointer(Adafruit_SSD1306 &display, int x, int y);
-        bool shouldShowHeader();
-        int getFoldersPerPage();
-        int getHeaderHeight();
-        int getStartFolderIndex();
 };
 
 #endif
