@@ -50,6 +50,7 @@ class Category {
         void drawDivider(Adafruit_SSD1306 &display, int &currentY);
         void drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected);
         void drawPointer(Adafruit_SSD1306 &display, int x, int y);
+        bool shouldShowHeader();
 };
 
 #endif

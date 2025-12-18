@@ -103,6 +103,10 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     }
 }
 
+bool Category::shouldShowHeader() {
+    return currentPage == 0;
+}
+
 void Category::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
@@ -112,12 +116,27 @@ void Category::display(Adafruit_SSD1306 &display) {
         categories = loadCategoryData(5);
     }
 
-    drawHeader(display, currentY);
-    drawDivider(display, currentY);
+    // Only show header and divider on first page to maximize space
+    if (shouldShowHeader()) {
+        drawHeader(display, currentY);
+        drawDivider(display, currentY);
+    }
+
+    // Calculate available space for folders
+    int availableHeight = CategoryConfig::SCREEN_HEIGHT - currentY;
+    int folderHeight = CategoryConfig::LINE_HEIGHT * 2 + CategoryConfig::SONG_SPACING; // 2 lines + spacing
+    int maxFoldersOnScreen = availableHeight / folderHeight;
 
     // Display folders for current page
     int startFolderIndex = currentPage * FOLDERS_PER_PAGE;
-    for (int i = 0; i < FOLDERS_PER_PAGE; ++i) {
+    int foldersToShow = FOLDERS_PER_PAGE;
+    
+    // If not on first page, we can fit more folders
+    if (!shouldShowHeader()) {
+        foldersToShow = maxFoldersOnScreen;
+    }
+
+    for (int i = 0; i < foldersToShow; ++i) {
         int folderIndex = startFolderIndex + i;
         if (folderIndex >= totalCategories) break;
 
