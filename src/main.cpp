@@ -3,7 +3,7 @@
 
 GUIManager gui;
 Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
-Folder testFolder(FolderType::PLAYLISTS, "Mathrock Playlist"); //Mathrock Playlist
+Folder testFolder(FolderType::ALBUMS, "Abbey Road"); // Testing: Templates-> Mathrock Playlist // The Beatles // Abbey Road
 Section section;
 Category category(CategoryType::ALBUMS);
 
