@@ -29,6 +29,16 @@ private:
     unsigned long lastUpdateTime;
     static const unsigned long UPDATE_INTERVAL = 50; // ms
     
+    // Screen instances for navigation
+    Category* cachedCategory;
+    Folder* cachedFolder;
+    Song* cachedSong;
+    Section* cachedSection;
+    
+    // Internal navigation handling
+    void handleForwardNavigation();
+    void handleBackNavigation();
+    
 public:
     GUIManager();
     bool begin();
@@ -45,12 +55,15 @@ public:
     NavResult displayFolder(Folder* folder);
     NavResult displaySong(Song* song);
     
+    // Setup screen cache for automatic navigation
+    void setScreenCache(Section* section, Category* category, Folder* folder, Song* song);
+    
     // Navigation queries
     bool canGoBack() const;
     size_t getStackDepth() const;
     ScreenBase* getCurrentScreen() const;
     
-    // Button access for external navigation handling
+    // Button access (for direct access if needed)
     ButtonManager& getButtonManager();
 };
 

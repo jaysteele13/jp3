@@ -2,6 +2,7 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 #include <Wire.h>
+#include "../../utils/navigation/navigation_state.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -12,7 +13,9 @@
 #define SCL_PIN 22
 
 GUIManager::GUIManager() 
-    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT) {
+    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT),
+      cachedCategory(nullptr), cachedFolder(nullptr), 
+      cachedSong(nullptr), cachedSection(nullptr) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 }
 
@@ -45,6 +48,10 @@ void GUIManager::update() {
         if (currentScreen) {
             currentScreen->handleInput(buttonManager);
         }
+        
+        // Check for navigation button presses
+        handleForwardNavigation();
+        handleBackNavigation();
         
         // Update non-rendering state
         navigator.update();
@@ -113,4 +120,95 @@ ScreenBase* GUIManager::getCurrentScreen() const {
 
 ButtonManager& GUIManager::getButtonManager() {
     return buttonManager;
+}
+
+void GUIManager::setScreenCache(Section* section, Category* category, Folder* folder, Song* song) {
+    cachedSection = section;
+    cachedCategory = category;
+    cachedFolder = folder;
+    cachedSong = song;
+}
+
+void GUIManager::handleForwardNavigation() {
+    if (!buttonManager.checkSelectPressed()) {
+        return;
+    }
+    
+    ScreenBase* current = navigator.current();
+    if (!current) {
+        Serial.println("ERROR: No current screen!");
+        return;
+    }
+    
+    // Determine current screen type and navigate forward
+    ScreenType currentType = NavigationState::getScreenLevel(current);
+    ScreenType nextType = NavigationState::getNextLevel(currentType);
+    
+    if (currentType == nextType) {
+        // Already at leaf node (Song), can't go deeper
+        Serial.println("INFO: Already at deepest level (Song)");
+        return;
+    }
+    
+    // Navigate to appropriate next screen based on current type
+    NavResult result = NavResult::INVALID_TRANSITION;
+    
+    switch (currentType) {
+        case ScreenType::SECTION:
+            // Section -> Category
+            if (cachedCategory) {
+                Serial.println("NAV: Section -> Category (Select pressed)");
+                result = displayCategory(cachedCategory);
+            }
+            break;
+            
+        case ScreenType::CATEGORY:
+            // Category -> Folder
+            if (cachedFolder) {
+                Serial.println("NAV: Category -> Folder (Select pressed)");
+                result = displayFolder(cachedFolder);
+            }
+            break;
+            
+        case ScreenType::FOLDER:
+            // Folder -> Song
+            if (cachedSong) {
+                Serial.println("NAV: Folder -> Song (Select pressed)");
+                result = displaySong(cachedSong);
+            }
+            break;
+            
+        case ScreenType::SONG:
+            // Can't go deeper
+            Serial.println("INFO: Already at Song (deepest level)");
+            result = NavResult::SUCCESS;
+            break;
+            
+        default:
+            Serial.println("ERROR: Unknown screen type!");
+            result = NavResult::INVALID_TRANSITION;
+            break;
+    }
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Forward navigation failed - ");
+        Serial.println(navResultToString(result));
+    }
+}
+
+void GUIManager::handleBackNavigation() {
+    if (!buttonManager.checkBackPressed()) {
+        return;
+    }
+    
+    if (!canGoBack()) {
+        Serial.println("INFO: Already at root screen");
+        return;
+    }
+    
+    NavResult result = popScreen();
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Back navigation failed - ");
+        Serial.println(navResultToString(result));
+    }
 }
