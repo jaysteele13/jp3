@@ -23,7 +23,7 @@ struct CategoryConfig {
     static const int FOLDER_SPACING = 2;
     static const int ALBUM_SPACING = 6; // Nicer spacing for albums
     static const int INDICATOR_OFFSET = 8;
-    static const int FOLDERS_PER_PAGE = 5; // Default for playlists/artists
+    static const int FOLDERS_PER_PAGE = 4; // Default for playlists/artists
     static const int ALBUMS_PER_PAGE = 2;
 };
 
@@ -51,8 +51,8 @@ class Category {
         
         void drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected);
         void drawSmallBitmap(Adafruit_SSD1306 &display, int x, int y);
-        int getFoldersPerPage();
         void drawDivider(Adafruit_SSD1306 &display, int &currentY);
+        int getFoldersPerPage();
 };
 
 #endif

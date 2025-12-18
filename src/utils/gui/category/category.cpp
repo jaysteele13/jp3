@@ -94,16 +94,17 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     int textX = CategoryConfig::MARGIN_X;
     int pointerX = CategoryConfig::INDICATOR_OFFSET;
     bool isAlbum = (categoryType == CategoryType::ALBUMS);
-    int spacing = isAlbum ? CategoryConfig::ALBUM_SPACING : CategoryConfig::FOLDER_SPACING;
+    bool isArtist = (categoryType == CategoryType::ARTISTS);
+    bool isPlaylist = (categoryType == CategoryType::PLAYLISTS);
     
     if (isSelected) {
         // Draw small bitmap icon beside the selected folder
         drawSmallBitmap(display, pointerX, currentY);
         textX = pointerX + 14; // Leave space for the small bitmap
-    } else {
-        currentY += spacing;
+    } else if (!isAlbum) {
+        // Only add static spacing for non-album categories
+        currentY += CategoryConfig::FOLDER_SPACING;
     }
-    drawDivider(display, currentY);
 
     // Display folder name (category name)
     TextValidator::displayScrollingText(display, categories[folderIndex].categoryName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex);
@@ -113,6 +114,15 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
     if (categories[folderIndex].artistName.length() > 0) {
         TextValidator::displayScrollingText(display, categories[folderIndex].artistName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex + 100);
         currentY += CategoryConfig::LINE_HEIGHT;
+    }
+
+    // Draw dividers based on category type
+    if (isAlbum) {
+        // For albums: draw divider between first and last records only
+        // This will be handled in the display function
+    } else if (isArtist || isPlaylist) {
+        // For artists and playlists: draw divider after every field
+        drawDivider(display, currentY);
     }
 }
 
@@ -128,12 +138,31 @@ void Category::display(Adafruit_SSD1306 &display) {
     // Display folders for current page
     int foldersPerPage = getFoldersPerPage();
     int startFolderIndex = currentPage * foldersPerPage;
+    bool isAlbum = (categoryType == CategoryType::ALBUMS);
+    
+    // Calculate dynamic spacing for albums to fill screen evenly
+    int albumSpacing = 0;
+    if (isAlbum) {
+        int totalTextHeight = foldersPerPage * 2 * CategoryConfig::LINE_HEIGHT; // 2 lines per album
+        int totalDividers = (foldersPerPage - 1) * (1 + CategoryConfig::DIVIDER_MARGIN); // dividers between albums
+        int usedSpace = totalTextHeight + totalDividers;
+        int remainingSpace = CategoryConfig::SCREEN_HEIGHT - usedSpace;
+        albumSpacing = remainingSpace / (foldersPerPage + 1); // distribute spacing top, between, and bottom
+        currentY = albumSpacing; // Start with top spacing
+    }
+    
     for (int i = 0; i < foldersPerPage; ++i) {
         int folderIndex = startFolderIndex + i;
         if (folderIndex >= totalCategories) break;
 
         bool isSelected = (folderIndex == selectedFolderIndex);
         drawFolder(display, folderIndex, currentY, isSelected);
+        
+        // For albums: draw divider between first and last records only
+        if (isAlbum && i < foldersPerPage - 1 && folderIndex < totalCategories - 1) {
+            drawDivider(display, currentY);
+            currentY += albumSpacing; // Add spacing after divider for albums
+        }
     }
 
     display.display();
