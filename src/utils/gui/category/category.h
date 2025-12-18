@@ -18,7 +18,7 @@ struct CategoryConfig {
     static const int SCREEN_HEIGHT = 64;
     static const int MARGIN_X = 2;
     static const int SELECTION_MARGIN = 4;
-    static const int DIVIDER_MARGIN = 2;
+    static const int DIVIDER_MARGIN = 8;
     static const int SONG_SPACING = 4;
     static const int INDICATOR_OFFSET = 8;
 };
@@ -33,6 +33,8 @@ class Category {
         Category(CategoryType categoryType);
         void display(Adafruit_SSD1306 &display);
         CategoryInfo* loadCategoryData(int amount);
+        void selectNextFolder();
+        void selectPreviousFolder();
         bool screenActive;
 
     private:
@@ -40,8 +42,12 @@ class Category {
         String categoryName;
         CategoryInfo* categories;
         int totalCategories;
+        int currentPage;
+        int selectedFolderIndex;
+        static const int FOLDERS_PER_PAGE = 2;
         
         void drawHeader(Adafruit_SSD1306 &display, int &currentY);
+        void drawDivider(Adafruit_SSD1306 &display, int &currentY);
 };
 
 #endif

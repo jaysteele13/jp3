@@ -1,6 +1,7 @@
 #include "category.h"
 
-Category::Category(CategoryType categoryType) : categoryType(categoryType) {
+Category::Category(CategoryType categoryType) : categoryType(categoryType), totalCategories(0), currentPage(0), selectedFolderIndex(0), screenActive(false) {
+    categories = nullptr;
     switch (categoryType) {
         case CategoryType::ALBUMS:
             categoryName = "Albums";
@@ -38,7 +39,20 @@ CategoryInfo* Category::loadCategoryData(int amount) {
 void Category::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
     // Display Category name with Icon!
     TextValidator::displayScrollingText(display, categoryName, CategoryConfig::MARGIN_X, currentY, 2, CategoryConfig::SCREEN_WIDTH, 0);
-    currentY += CategoryConfig::LINE_HEIGHT;
+    currentY += (CategoryConfig::LINE_HEIGHT + CategoryConfig::DIVIDER_MARGIN); // Size Text is big so twice as big of a difference
+}
+
+void Category::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
+    // Create a dynamic zigzag pattern divider
+    int amplitude = 2;
+    int wavelength = 8;
+    
+    for (int x = 0; x < CategoryConfig::SCREEN_WIDTH; x += wavelength) {
+        int nextX = (x + wavelength < CategoryConfig::SCREEN_WIDTH) ? x + wavelength : CategoryConfig::SCREEN_WIDTH;
+        display.drawLine(x, currentY, nextX, currentY + (x / wavelength % 2 == 0 ? amplitude : -amplitude), SSD1306_WHITE);
+    }
+    
+    currentY += CategoryConfig::DIVIDER_MARGIN + amplitude;
 }
 
 void Category::display(Adafruit_SSD1306 &display) {
@@ -51,6 +65,7 @@ void Category::display(Adafruit_SSD1306 &display) {
     }
 
     drawHeader(display, currentY);
+    drawDivider(display, currentY);
 
     // Additional display logic for categories can be added here
 
