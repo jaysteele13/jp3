@@ -80,6 +80,7 @@ void GUIManager::displaySection(Section& section) {
         }
 
 void GUIManager::displayCategory(Category& category) {
+    currentCategory = &category;
     category.screenActive = true;
     if (currentFolder) currentFolder->screenActive = false;
     if (currentSection) currentSection->screenActive = false; // make a private function to hnadle this all these repeated if statements are brutal!
@@ -120,6 +121,22 @@ void GUIManager::handleInput() {
             if (buttonManager.checkUpPressed()) {
                 Serial.println("Up button pressed - navigating to previous screen");
                 currentSection->previousPage();
+            } 
+            break;
+
+        case ScreenType::CATEGORY:
+            if (!currentCategory || !currentCategory->screenActive) {
+                return;
+            }
+            
+            if (buttonManager.checkDownPressed()) {
+                Serial.println("Down button pressed - navigating to next category");
+                currentCategory->selectNextFolder();
+            } 
+            
+            if (buttonManager.checkUpPressed()) {
+                Serial.println("Up button pressed - navigating to previous category");
+                currentCategory->selectPreviousFolder();
             } 
             break;
             

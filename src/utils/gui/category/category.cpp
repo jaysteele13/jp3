@@ -55,6 +55,54 @@ void Category::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
     currentY += CategoryConfig::DIVIDER_MARGIN + amplitude;
 }
 
+void Category::selectNextFolder() {
+    if (selectedFolderIndex < totalCategories - 1) {
+        selectedFolderIndex++;
+        // Update current page if needed
+        if (selectedFolderIndex >= (currentPage + 1) * FOLDERS_PER_PAGE) {
+            currentPage++;
+        }
+    }
+}
+
+void Category::selectPreviousFolder() {
+    if (selectedFolderIndex > 0) {
+        selectedFolderIndex--;
+        // Update current page if needed
+        if (selectedFolderIndex < currentPage * FOLDERS_PER_PAGE) {
+            currentPage--;
+        }
+    }
+}
+
+void Category::drawPointer(Adafruit_SSD1306 &display, int x, int y) {
+    // Draw a simple triangle pointer that points right
+    display.fillTriangle(x, y + 3, x + 6, y, x + 6, y + 6, SSD1306_WHITE);
+}
+
+void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected) {
+    int textX = CategoryConfig::MARGIN_X;
+    int pointerX = CategoryConfig::INDICATOR_OFFSET;
+    
+    if (isSelected) {
+        // Draw pointer icon beside the selected folder
+        drawPointer(display, pointerX, currentY);
+        textX = pointerX + 10; // Leave space for the pointer
+    } else {
+        currentY += CategoryConfig::SONG_SPACING;
+    }
+
+    // Display folder name (category name)
+    TextValidator::displayScrollingText(display, categories[folderIndex].categoryName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex);
+    currentY += CategoryConfig::LINE_HEIGHT;
+
+    // Display artist name if available (for albums)
+    if (categories[folderIndex].artistName.length() > 0) {
+        TextValidator::displayScrollingText(display, categories[folderIndex].artistName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex + 100);
+        currentY += CategoryConfig::LINE_HEIGHT;
+    }
+}
+
 void Category::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 
@@ -67,7 +115,15 @@ void Category::display(Adafruit_SSD1306 &display) {
     drawHeader(display, currentY);
     drawDivider(display, currentY);
 
-    // Additional display logic for categories can be added here
+    // Display folders for current page
+    int startFolderIndex = currentPage * FOLDERS_PER_PAGE;
+    for (int i = 0; i < FOLDERS_PER_PAGE; ++i) {
+        int folderIndex = startFolderIndex + i;
+        if (folderIndex >= totalCategories) break;
+
+        bool isSelected = (folderIndex == selectedFolderIndex);
+        drawFolder(display, folderIndex, currentY, isSelected);
+    }
 
     display.display();
 }
