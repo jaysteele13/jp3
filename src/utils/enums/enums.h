@@ -25,6 +25,10 @@ enum class CategoryType {
     ARTISTS
 };
 
+struct AlbumInfo {
+    String albumName;
+};
+
 struct CategoryInfo {
     String categoryName;
     String artistName;
