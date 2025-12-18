@@ -46,6 +46,9 @@ public:
     // Navigation queries
     bool canGoBack() const;
     size_t getStackDepth() const;
+    
+    // Button access for external navigation handling
+    ButtonManager& getButtonManager();
 };
 
 #endif

@@ -104,3 +104,7 @@ bool GUIManager::canGoBack() const {
 size_t GUIManager::getStackDepth() const {
     return navigator.getStackDepth();
 }
+
+ButtonManager& GUIManager::getButtonManager() {
+    return buttonManager;
+}
