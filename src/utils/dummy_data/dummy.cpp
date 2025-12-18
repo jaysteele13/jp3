@@ -211,7 +211,12 @@ SongInfo* dummyData::getSongsForPlaylist(String playlistName, int& count) {
 
 // Get all playlists (stub - add actual playlists as needed)
 CategoryInfo* dummyData::getAllPlaylists(int& count) {
-    // For now, return empty - implement playlists in the future
-    count = 0;
-    return nullptr;
+    count = sizeof(PLAYLISTS) / sizeof(PLAYLISTS[0]);
+    CategoryInfo* playlists = new CategoryInfo[count];
+    for (int i = 0; i < count; ++i) {
+        playlists[i].categoryName = PLAYLISTS[i].playlistName;
+        playlists[i].artistName = "";
+    }
+    return playlists;
+   
 }
