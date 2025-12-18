@@ -5,15 +5,15 @@ GUIManager gui;
 Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
 Folder testFolder(FolderType::ALBUMS, "Abbey Road");
 Section section;
-Category category(CategoryType::PLAYLISTS);
+Category category(CategoryType::ALBUMS);
 
 void setup() {
   gui.begin();
   // Set initial Screen
   // gui.displaySong(testSong);
-  gui.displayFolder(testFolder);
+  // gui.displayFolder(testFolder);
   // gui.displaySection(section);
-  // gui.displayCategory(category);  
+  gui.displayCategory(category);  
 }
 
 void loop() {

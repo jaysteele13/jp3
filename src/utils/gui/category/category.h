@@ -11,6 +11,10 @@
 
 // Include Text validator for scrolling text
 #include "../../validation/text_validator.h"
+
+// Include dummy data
+#include "../../dummy_data/dummy.h"
+
 // Include small bitmaps
 #include "small_bitmaps.h"
 

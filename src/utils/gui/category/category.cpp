@@ -17,8 +17,38 @@ Category::Category(CategoryType categoryType) : categoryType(categoryType), tota
 }
 
 CategoryInfo* Category::loadCategoryData(int amount) {
-    // For demonstration, we will create dummy category data
-    // based on category type produce dummy data
+    // Try to load real data first based on category type
+    int dataCount = 0;
+    CategoryInfo* data = nullptr;
+    
+    switch(categoryType) {
+        case CategoryType::ALBUMS:
+            data = getAllAlbums(dataCount);
+            if (data != nullptr && dataCount > 0) {
+                totalCategories = dataCount;
+                categories = data;
+                return categories;
+            }
+            break;
+        case CategoryType::ARTISTS:
+            data = getAllArtists(dataCount);
+            if (data != nullptr && dataCount > 0) {
+                totalCategories = dataCount;
+                categories = data;
+                return categories;
+            }
+            break;
+        case CategoryType::PLAYLISTS:
+            data = getAllPlaylists(dataCount);
+            if (data != nullptr && dataCount > 0) {
+                totalCategories = dataCount;
+                categories = data;
+                return categories;
+            }
+            break;
+    }
+    
+    // Fallback to dummy data if real data not available
     totalCategories = amount;
     categories = new CategoryInfo[totalCategories];
     switch(categoryType) {
@@ -120,16 +150,6 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
         TextValidator::displayScrollingText(display, categories[folderIndex].artistName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex + 100);
         currentY += CategoryConfig::LINE_HEIGHT;
     }
-
-    // // Draw dividers based on category type
-    // if (isAlbum) {
-    //     // For albums: draw divider between first and last records only
-    //     // This will be handled in the display function
-    // } else if (isArtist || isPlaylist) {
-    //     // For artists and playlists: draw divider after every field
-    //     currentY -= CategoryConfig::FOLDER_SPACING; // Remove extra spacing before divider
-    //     drawDivider(display, currentY);
-    // }
 }
 
 void Category::display(Adafruit_SSD1306 &display) {

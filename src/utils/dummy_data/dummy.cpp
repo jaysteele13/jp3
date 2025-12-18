@@ -63,3 +63,29 @@ SongInfo* getSongsForAlbum(String albumName, int& count) {
     count = 0;
     return nullptr;
 }
+
+// Get all albums as CategoryInfo (for category display)
+CategoryInfo* getAllAlbums(int& count) {
+    count = ALBUM_COUNT;
+    CategoryInfo* albums = new CategoryInfo[count];
+    for (int i = 0; i < count; ++i) {
+        albums[i].categoryName = ALBUMS[i].albumName;
+        albums[i].artistName = ALBUMS[i].artistName;
+    }
+    return albums;
+}
+
+// Get all unique artists from all albums
+CategoryInfo* getAllArtists(int& count) {
+    // For now, extract from albums (can expand as more artists/albums are added)
+    // This would Use an Artist Folder but maybe we could use Albums as well, 
+    // need to figure it out to avoid duplication
+    return nullptr;
+}
+
+// Get all playlists (stub - add actual playlists as needed)
+CategoryInfo* getAllPlaylists(int& count) {
+    // For now, return empty - implement playlists in the future
+    count = 0;
+    return nullptr;
+}
