@@ -11,10 +11,7 @@
 // Text Validator for scrolling text
 #include "../../validation/text_validator.h"
 
-struct SongInfo {
-            String songName;
-            String artistName;
-};
+
 
 struct DisplayConfig {
     static const int LINE_HEIGHT = 12;

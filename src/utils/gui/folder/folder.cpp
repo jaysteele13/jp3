@@ -42,6 +42,7 @@ SongInfo* Folder::loadSongData(int amount) {
     for (int i = 0; i < totalSongs; ++i) {
         songs[i].songName = "Song" + String(i + 1);
         songs[i].artistName = "Artist " + String(i + 1);
+        songs[i].duration = 180 + i * 10; // dummy duration in seconds
     }
     return songs;
 }

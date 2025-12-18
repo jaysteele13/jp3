@@ -28,10 +28,7 @@ struct CategoryConfig {
     static const int ALBUMS_PER_PAGE = 2;
 };
 
-struct CategoryInfo {
-            String categoryName;
-            String artistName;
-};
+
 
 class Category {
     public:
