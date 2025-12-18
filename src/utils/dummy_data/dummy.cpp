@@ -6,23 +6,23 @@
 
 // Song names for Abbey Road
 static const SongInfo SONG_NAMES_ABBEY_ROAD[] = {
-    {"Come Together", "The Beatles", 259},
-    {"Something", "The Beatles", 182},
-    {"Maxwell's Silver Hammer", "The Beatles", 207},
-    {"Oh! Darling", "The Beatles", 214},
-    {"Octopus's Garden", "The Beatles", 170},
-    {"I Want You (She's So Heavy)", "The Beatles", 467},
-    {"Here Comes the Sun", "The Beatles", 185},
-    {"Because", "The Beatles", 165},
-    {"You Never Give Me Your Money", "The Beatles", 242},
-    {"Sun King", "The Beatles", 145},
-    {"Mean Mr. Mustard", "The Beatles", 66},
-    {"Polythene Pam", "The Beatles", 67},
-    {"She Came In Through the Bathroom Window", "The Beatles", 118},
-    {"Golden Slumbers", "The Beatles", 91},
-    {"Carry That Weight", "The Beatles", 97},
-    {"The End", "The Beatles", 141},
-    {"Her Majesty", "The Beatles", 23}
+    {"Come Together", "The Beatles", "Abbey Road", 259},
+    {"Something", "The Beatles", "Abbey Road", 182},
+    {"Maxwell's Silver Hammer", "The Beatles", "Abbey Road", 207},
+    {"Oh! Darling", "The Beatles", "Abbey Road", 214},
+    {"Octopus's Garden", "The Beatles", "Abbey Road", 170},
+    {"I Want You (She's So Heavy)", "The Beatles", "Abbey Road", 467},
+    {"Here Comes the Sun", "The Beatles", "Abbey Road", 185},
+    {"Because", "The Beatles", "Abbey Road", 165},
+    {"You Never Give Me Your Money", "The Beatles", "Abbey Road", 242},
+    {"Sun King", "The Beatles", "Abbey Road", 145},
+    {"Mean Mr. Mustard", "The Beatles", "Abbey Road", 66},
+    {"Polythene Pam", "The Beatles", "Abbey Road", 67},
+    {"She Came In Through the Bathroom Window", "The Beatles", "Abbey Road", 118},
+    {"Golden Slumbers", "The Beatles", "Abbey Road", 91},
+    {"Carry That Weight", "The Beatles", "Abbey Road", 97},
+    {"The End", "The Beatles", "Abbey Road", 141},
+    {"Her Majesty", "The Beatles", "Abbey Road", 23}
 };
 
 static const int ABBEY_ROAD_SONG_COUNT = sizeof(SONG_NAMES_ABBEY_ROAD) / sizeof(SONG_NAMES_ABBEY_ROAD[0]);
@@ -55,6 +55,7 @@ SongInfo* getSongsForAlbum(String albumName, int& count) {
             for (int j = 0; j < count; ++j) {
                 songs[j].songName = ALBUMS[i].songs[j].songName;
                 songs[j].artistName = ALBUMS[i].artistName;
+                songs[j].albumName = ALBUMS[i].albumName;
                 songs[j].duration = ALBUMS[i].songs[j].duration;
             }
             return songs;
@@ -118,13 +119,17 @@ SongInfo* getSongsForArtist(String artistName, int& count) {
         return nullptr;
     }
     
-    // Second pass: collect all songs for this artist
+    // Second pass: collect all songs for this artist with album info
     SongInfo* songs = new SongInfo[totalSongs];
     int songIndex = 0;
     for (int i = 0; i < ALBUM_COUNT; ++i) {
         if (ALBUMS[i].artistName == artistName) {
             for (int j = 0; j < ALBUMS[i].songCount; ++j) {
-                songs[songIndex++] = ALBUMS[i].songs[j];
+                songs[songIndex].songName = ALBUMS[i].songs[j].songName;
+                songs[songIndex].artistName = ALBUMS[i].songs[j].artistName;
+                songs[songIndex].albumName = ALBUMS[i].albumName;  // Include album name
+                songs[songIndex].duration = ALBUMS[i].songs[j].duration;
+                songIndex++;
             }
         }
     }

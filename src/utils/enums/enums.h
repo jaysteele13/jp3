@@ -14,7 +14,8 @@ enum class FolderType {
 struct SongInfo {
     String songName;
     String artistName;
-    int duration; // in seconds
+    String albumName;     // Album name (used for artist view display)
+    int duration;         // in seconds
 };
 
 

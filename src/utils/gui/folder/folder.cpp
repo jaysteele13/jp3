@@ -89,7 +89,15 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
     TextValidator::displayScrollingText(display, songs[songIndex].songName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 
-    TextValidator::displayScrollingText(display, songs[songIndex].artistName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    // Display different secondary info based on folder type
+    String secondaryInfo;
+    if (folderType == FolderType::ARTISTS) {
+        secondaryInfo = songs[songIndex].albumName;
+    } else {
+        secondaryInfo = songs[songIndex].artistName;
+    }
+    
+    TextValidator::displayScrollingText(display, secondaryInfo, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 
