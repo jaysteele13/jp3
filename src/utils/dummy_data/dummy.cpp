@@ -2,6 +2,22 @@
 
 // ==================== DUMMY DATA ARRAYS ====================
 
+// Macro to calculate array size at compile time
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
+
+static const SongInfo SONG_NAMES_DARK_SIDE[] = {
+    {"Speak to Me", "Pink Floyd", "The Dark Side of the Moon", 90},
+    {"Breathe", "Pink Floyd", "The Dark Side of the Moon", 163},
+    {"On the Run", "Pink Floyd", "The Dark Side of the Moon", 234},
+    {"Time", "Pink Floyd", "The Dark Side of the Moon", 421},
+    {"The Great Gig in the Sky", "Pink Floyd", "The Dark Side of the Moon", 276},
+    {"Money", "Pink Floyd", "The Dark Side of the Moon", 382},
+    {"Us and Them", "Pink Floyd", "The Dark Side of the Moon", 462},
+    {"Any Colour You Like", "Pink Floyd", "The Dark Side of the Moon", 205},
+    {"Brain Damage", "Pink Floyd", "The Dark Side of the Moon", 228},
+    {"Eclipse", "Pink Floyd", "The Dark Side of the Moon", 123}
+};
 
 
 // Song names for Abbey Road
@@ -25,8 +41,6 @@ static const SongInfo SONG_NAMES_ABBEY_ROAD[] = {
     {"Her Majesty", "The Beatles", "Abbey Road", 23}
 };
 
-static const int ABBEY_ROAD_SONG_COUNT = sizeof(SONG_NAMES_ABBEY_ROAD) / sizeof(SONG_NAMES_ABBEY_ROAD[0]);
-
 // Album structure for storing album metadata
 struct AlbumData {
     String albumName;
@@ -37,9 +51,9 @@ struct AlbumData {
 
 // Album data
 static const AlbumData ALBUMS[] = {
-    {"Abbey Road", SONG_NAMES_ABBEY_ROAD, ABBEY_ROAD_SONG_COUNT, "The Beatles"}
+    {"Abbey Road", SONG_NAMES_ABBEY_ROAD, ARRAY_SIZE(SONG_NAMES_ABBEY_ROAD), "The Beatles"},
+    {"The Dark Side of the Moon", SONG_NAMES_DARK_SIDE, ARRAY_SIZE(SONG_NAMES_DARK_SIDE), "Pink Floyd"}
 };
-
 static const int ALBUM_COUNT = sizeof(ALBUMS) / sizeof(ALBUMS[0]);
 
 
@@ -78,9 +92,9 @@ CategoryInfo* getAllAlbums(int& count) {
 
 // Get all unique artists from all albums
 CategoryInfo* getAllArtists(int& count) {
-    // Count unique artists
+    // First pass: count unique artists (max possible is ALBUM_COUNT)
+    String uniqueArtists[ALBUM_COUNT]; // Dynamically sized based on album count
     int uniqueCount = 0;
-    String uniqueArtists[10]; // Assuming max 10 unique artists
     
     for (int i = 0; i < ALBUM_COUNT; ++i) {
         bool isNew = true;
@@ -90,7 +104,7 @@ CategoryInfo* getAllArtists(int& count) {
                 break;
             }
         }
-        if (isNew && uniqueCount < 10) {
+        if (isNew) {
             uniqueArtists[uniqueCount++] = ALBUMS[i].artistName;
         }
     }
