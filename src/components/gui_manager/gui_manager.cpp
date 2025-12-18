@@ -18,6 +18,7 @@ GUIManager::GUIManager() : lastUpdateTime(0) {
     currentFolder = nullptr;
     currentSection = nullptr;
     currentSong = nullptr;
+    currentCategory = nullptr;
     currentScreenType = ScreenType::FOLDER;
 }
 
@@ -78,6 +79,15 @@ void GUIManager::displaySection(Section& section) {
             section.display(*display);
         }
 
+void GUIManager::displayCategory(Category& category) {
+    category.screenActive = true;
+    if (currentFolder) currentFolder->screenActive = false;
+    if (currentSection) currentSection->screenActive = false; // make a private function to hnadle this all these repeated if statements are brutal!
+    currentScreenType = ScreenType::CATEGORY; 
+    category.display(*display);
+}
+
+// Handles Button Input
 void GUIManager::handleInput() {
     // Button Logic Per Screen
     switch (currentScreenType) {
@@ -136,6 +146,11 @@ void GUIManager::updateDisplay() {
         case ScreenType::SONG:
             if (currentSong) {
                 currentSong->display(*display);
+            }
+            break;
+        case ScreenType::CATEGORY:
+            if (currentCategory) {
+                currentCategory->display(*display);
             }
             break;
     }

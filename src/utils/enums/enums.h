@@ -10,4 +10,13 @@ enum class FolderType {
 };
 
 
+// CATEGORY
+enum class CategoryType {
+    ALBUMS,
+    PLAYLISTS,
+};
+
+
+
+
 #endif

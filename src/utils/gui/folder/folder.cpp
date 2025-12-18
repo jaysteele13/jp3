@@ -1,5 +1,5 @@
 #include "folder.h"
-#include "../../validation/text_validator.h"
+
 
 void Folder::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
     display.drawRect(x, y, width, height, SSD1306_WHITE);
