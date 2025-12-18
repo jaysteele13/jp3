@@ -3,15 +3,17 @@
 
 GUIManager gui;
 Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
-Folder testFolder(FolderType::ALBUMS, "50 Ways to Leave Your Lover");
+Folder testFolder(FolderType::ALBUMS, "Abbey Road"); // Testing: Templates-> Mathrock Playlist // The Beatles // Abbey Road
 Section section;
+Category category(CategoryType::PLAYLISTS);
 
 void setup() {
   gui.begin();
   // Set initial Screen
   // gui.displaySong(testSong);
   // gui.displayFolder(testFolder);
-  gui.displaySection(section);  
+  // gui.displaySection(section);
+  gui.displayCategory(category);  
 }
 
 void loop() {

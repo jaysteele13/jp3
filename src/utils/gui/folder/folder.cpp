@@ -1,5 +1,5 @@
 #include "folder.h"
-#include "../../validation/text_validator.h"
+
 
 void Folder::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
     display.drawRect(x, y, width, height, SSD1306_WHITE);
@@ -36,15 +36,38 @@ Folder::Folder(FolderType folderType, String folderName) :
 }
 
 SongInfo* Folder::loadSongData(int amount) {
-    // For demonstration, we will create dummy song data
-    totalSongs = amount;
-    songs = new SongInfo[totalSongs];
-    for (int i = 0; i < totalSongs; ++i) {
-        songs[i].songName = "Song" + String(i + 1);
-        songs[i].artistName = "Artist " + String(i + 1);
+    // Try to load real data based on folder type
+    int dataCount = 0;
+    SongInfo* songData = nullptr;
+    
+    if (folderType == FolderType::ALBUMS) {
+        songData = dummyData::getSongsForAlbum(folderName, dataCount);
+    } else if (folderType == FolderType::ARTISTS) {
+        songData = dummyData::getSongsForArtist(folderName, dataCount);
+    } else if (folderType == FolderType::PLAYLISTS) {
+        songData = dummyData::getSongsForPlaylist(folderName, dataCount);
     }
+    // } else if (folderType == FolderType::ALL_SONGS) {
+    //     songData = getAllSongs(dataCount);
+    // }
+
+
+    // If song data isn't null return
+    if (songData != nullptr && dataCount > 0) {
+        // Use real data
+        totalSongs = dataCount;
+        songs = songData;
+        return songs;
+    }
+    
+    SongInfo* noSong = new SongInfo[1];
+    noSong[0].songName = "No Songs Found";
+    noSong[0].artistName = "";
+    totalSongs = 1;
+    songs = noSong;
     return songs;
 }
+
 
 void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
     TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, DisplayConfig::SCREEN_WIDTH, 0);
@@ -71,7 +94,15 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
     TextValidator::displayScrollingText(display, songs[songIndex].songName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 
-    TextValidator::displayScrollingText(display, songs[songIndex].artistName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    // Display different secondary info based on folder type
+    String secondaryInfo;
+    if (folderType == FolderType::ARTISTS) {
+        secondaryInfo = songs[songIndex].albumName;
+    } else {
+        secondaryInfo = songs[songIndex].artistName;
+    }
+    
+    TextValidator::displayScrollingText(display, secondaryInfo, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 

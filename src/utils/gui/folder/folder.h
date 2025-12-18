@@ -8,10 +8,13 @@
 // Enum for folder type
 #include "../../enums/enums.h"
 
-struct SongInfo {
-            String songName;
-            String artistName;
-};
+// Text Validator for scrolling text
+#include "../../validation/text_validator.h"
+
+// Dummy data for albums
+#include "../../dummy_data/dummy.h"
+
+
 
 struct DisplayConfig {
     static const int LINE_HEIGHT = 12;
@@ -29,7 +32,6 @@ class Folder {
         Folder(FolderType folderType, String folderName);
         SongInfo* loadSongData(int amount);
         void display(Adafruit_SSD1306 &display);
-        void nextPage(int currentPage);
         void selectNextSong();
         void selectPreviousSong();
         bool screenActive;

@@ -18,6 +18,7 @@ GUIManager::GUIManager() : lastUpdateTime(0) {
     currentFolder = nullptr;
     currentSection = nullptr;
     currentSong = nullptr;
+    currentCategory = nullptr;
     currentScreenType = ScreenType::FOLDER;
 }
 
@@ -78,6 +79,16 @@ void GUIManager::displaySection(Section& section) {
             section.display(*display);
         }
 
+void GUIManager::displayCategory(Category& category) {
+    currentCategory = &category;
+    category.screenActive = true;
+    if (currentFolder) currentFolder->screenActive = false;
+    if (currentSection) currentSection->screenActive = false; // make a private function to hnadle this all these repeated if statements are brutal!
+    currentScreenType = ScreenType::CATEGORY; 
+    category.display(*display);
+}
+
+// Handles Button Input
 void GUIManager::handleInput() {
     // Button Logic Per Screen
     switch (currentScreenType) {
@@ -112,6 +123,22 @@ void GUIManager::handleInput() {
                 currentSection->previousPage();
             } 
             break;
+
+        case ScreenType::CATEGORY:
+            if (!currentCategory || !currentCategory->screenActive) {
+                return;
+            }
+            
+            if (buttonManager.checkDownPressed()) {
+                Serial.println("Down button pressed - navigating to next category");
+                currentCategory->selectNextFolder();
+            } 
+            
+            if (buttonManager.checkUpPressed()) {
+                Serial.println("Up button pressed - navigating to previous category");
+                currentCategory->selectPreviousFolder();
+            } 
+            break;
             
         case ScreenType::SONG:
             // Song input handling could be added here
@@ -136,6 +163,11 @@ void GUIManager::updateDisplay() {
         case ScreenType::SONG:
             if (currentSong) {
                 currentSong->display(*display);
+            }
+            break;
+        case ScreenType::CATEGORY:
+            if (currentCategory) {
+                currentCategory->display(*display);
             }
             break;
     }

@@ -7,12 +7,14 @@
 #include "../../utils/gui/song/song.h"
 #include "../../utils/gui/folder/folder.h"
 #include "../../utils/gui/section/section.h"
+#include "../../utils/gui/category/category.h"
 #include "../button_manager/button_manager.h"
 
 enum class ScreenType {
     SONG,
     FOLDER,
-    SECTION
+    SECTION,
+    CATEGORY
 };
 
 class GUIManager {
@@ -22,6 +24,7 @@ private:
     Folder* currentFolder;
     Section* currentSection;
     Song* currentSong;
+    Category* currentCategory;
     ScreenType currentScreenType;
     
     // Non-blocking timing
@@ -41,6 +44,7 @@ public:
     void displaySong(Song& song);
     void displayFolder(Folder& folder);
     void displaySection(Section& section);
+    void displayCategory(Category& category);
     
     // Navigation methods
     void navigateToSection();

@@ -44,3 +44,17 @@ libraries by scanning project source files.
 
 More information about PlatformIO Library Dependency Finder
 - https://docs.platformio.org/page/librarymanager/ldf.html
+
+
+## OLED Structure
+
+Not the best naming conventions but here is the breakdown
+
+`Section -> Category -> Folder -> Song`
+
+Collection instead of Folder may be better.
+
+This could be: Album -> View Albums -> View Songs from Album -> view specific song
+This could also be: Playlist -> View Playlists -> View songs from Playlist -> view specific song
+Also: Artist -> View Songs from Artist -> Specific Song
+: All_songs -> etc etc etc
