@@ -14,6 +14,7 @@ enum class FolderType {
 enum class CategoryType {
     ALBUMS,
     PLAYLISTS,
+    ARTISTS
 };
 
 

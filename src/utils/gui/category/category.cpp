@@ -9,6 +9,9 @@ Category::Category(CategoryType categoryType) : categoryType(categoryType), tota
         case CategoryType::PLAYLISTS:
             categoryName = "Playlists";
             break;
+        case CategoryType::ARTISTS:
+            categoryName = "Artists";
+            break;
     }
     screenActive = false;
 }
@@ -31,16 +34,27 @@ CategoryInfo* Category::loadCategoryData(int amount) {
                 categories[i].artistName = "";
             }
             break;
+        case CategoryType::ARTISTS:
+            for (int i = 0; i < totalCategories; ++i) {
+                categories[i].categoryName = "Artist" + String(i + 1);
+                categories[i].artistName = ""; // Artists don't need a secondary field
+            }
+            break;
     }
 
     return categories;
 }
 
+int Category::getFoldersPerPage() {
+    return (categoryType == CategoryType::ALBUMS) ? CategoryConfig::ALBUMS_PER_PAGE : CategoryConfig::FOLDERS_PER_PAGE;
+}
+
 void Category::selectNextFolder() {
     if (selectedFolderIndex < totalCategories - 1) {
         selectedFolderIndex++;
-        // Update current page if needed
-        if (selectedFolderIndex >= (currentPage + 1) * CategoryConfig::FOLDERS_PER_PAGE) {
+        // Update current page if needed using dynamic folder count
+        int foldersPerPage = getFoldersPerPage();
+        if (selectedFolderIndex >= (currentPage + 1) * foldersPerPage) {
             currentPage++;
         }
     }
@@ -49,8 +63,9 @@ void Category::selectNextFolder() {
 void Category::selectPreviousFolder() {
     if (selectedFolderIndex > 0) {
         selectedFolderIndex--;
-        // Update current page if needed
-        if (selectedFolderIndex < currentPage * CategoryConfig::FOLDERS_PER_PAGE) {
+        // Update current page if needed using dynamic folder count
+        int foldersPerPage = getFoldersPerPage();
+        if (selectedFolderIndex < currentPage * foldersPerPage) {
             currentPage--;
         }
     }
@@ -64,13 +79,15 @@ void Category::drawPointer(Adafruit_SSD1306 &display, int x, int y) {
 void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected) {
     int textX = CategoryConfig::MARGIN_X;
     int pointerX = CategoryConfig::INDICATOR_OFFSET;
+    bool isAlbum = (categoryType == CategoryType::ALBUMS);
+    int spacing = isAlbum ? CategoryConfig::ALBUM_SPACING : CategoryConfig::FOLDER_SPACING;
     
     if (isSelected) {
         // Draw pointer icon beside the selected folder
         drawPointer(display, pointerX, currentY);
         textX = pointerX + 10; // Leave space for the pointer
     } else {
-        currentY += CategoryConfig::FOLDER_SPACING;
+        currentY += spacing;
     }
 
     // Display folder name (category name)
@@ -94,8 +111,9 @@ void Category::display(Adafruit_SSD1306 &display) {
     }
 
     // Display folders for current page
-    int startFolderIndex = currentPage * CategoryConfig::FOLDERS_PER_PAGE;
-    for (int i = 0; i < CategoryConfig::FOLDERS_PER_PAGE; ++i) {
+    int foldersPerPage = getFoldersPerPage();
+    int startFolderIndex = currentPage * foldersPerPage;
+    for (int i = 0; i < foldersPerPage; ++i) {
         int folderIndex = startFolderIndex + i;
         if (folderIndex >= totalCategories) break;
 
