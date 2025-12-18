@@ -77,10 +77,60 @@ CategoryInfo* getAllAlbums(int& count) {
 
 // Get all unique artists from all albums
 CategoryInfo* getAllArtists(int& count) {
-    // For now, extract from albums (can expand as more artists/albums are added)
-    // This would Use an Artist Folder but maybe we could use Albums as well, 
-    // need to figure it out to avoid duplication
-    return nullptr;
+    // Count unique artists
+    int uniqueCount = 0;
+    String uniqueArtists[10]; // Assuming max 10 unique artists
+    
+    for (int i = 0; i < ALBUM_COUNT; ++i) {
+        bool isNew = true;
+        for (int j = 0; j < uniqueCount; ++j) {
+            if (uniqueArtists[j] == ALBUMS[i].artistName) {
+                isNew = false;
+                break;
+            }
+        }
+        if (isNew && uniqueCount < 10) {
+            uniqueArtists[uniqueCount++] = ALBUMS[i].artistName;
+        }
+    }
+    
+    count = uniqueCount;
+    CategoryInfo* artists = new CategoryInfo[count];
+    for (int i = 0; i < count; ++i) {
+        artists[i].categoryName = uniqueArtists[i];
+        artists[i].artistName = "";
+    }
+    return artists;
+}
+
+// Get all songs for a specific artist (aggregates from all albums)
+SongInfo* getSongsForArtist(String artistName, int& count) {
+    // First pass: count total songs for this artist
+    int totalSongs = 0;
+    for (int i = 0; i < ALBUM_COUNT; ++i) {
+        if (ALBUMS[i].artistName == artistName) {
+            totalSongs += ALBUMS[i].songCount;
+        }
+    }
+    
+    if (totalSongs == 0) {
+        count = 0;
+        return nullptr;
+    }
+    
+    // Second pass: collect all songs for this artist
+    SongInfo* songs = new SongInfo[totalSongs];
+    int songIndex = 0;
+    for (int i = 0; i < ALBUM_COUNT; ++i) {
+        if (ALBUMS[i].artistName == artistName) {
+            for (int j = 0; j < ALBUMS[i].songCount; ++j) {
+                songs[songIndex++] = ALBUMS[i].songs[j];
+            }
+        }
+    }
+    
+    count = totalSongs;
+    return songs;
 }
 
 // Get all playlists (stub - add actual playlists as needed)

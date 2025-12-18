@@ -36,18 +36,24 @@ Folder::Folder(FolderType folderType, String folderName) :
 }
 
 SongInfo* Folder::loadSongData(int amount) {
-    // Try to load real album data first
-    int albumCount = 0;
-    SongInfo* albumSongs = getSongsForAlbum(folderName, albumCount);
+    // Try to load real data based on folder type
+    int dataCount = 0;
+    SongInfo* songData = nullptr;
     
-    if (albumSongs != nullptr && albumCount > 0) {
-        // Use real album data
-        totalSongs = albumCount;
-        songs = albumSongs;
+    if (folderType == FolderType::ALBUMS) {
+        songData = getSongsForAlbum(folderName, dataCount);
+    } else if (folderType == FolderType::ARTISTS) {
+        songData = getSongsForArtist(folderName, dataCount);
+    }
+    
+    if (songData != nullptr && dataCount > 0) {
+        // Use real data
+        totalSongs = dataCount;
+        songs = songData;
         return songs;
     }
     
-    // Fallback to dummy data if album not found
+    // Fallback to dummy data if not found
     totalSongs = amount;
     songs = new SongInfo[totalSongs];
     for (int i = 0; i < totalSongs; ++i) {
