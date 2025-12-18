@@ -8,71 +8,70 @@ NavigationController::NavigationController(uint16_t width, uint16_t height)
 }
 
 NavigationController::~NavigationController() {
-    // Note: We don't delete the screens themselves as they're managed by GUIManager
+    // NOTE: We don't delete screens - we don't own them
+    // Caller is responsible for screen lifecycle
 }
 
-void NavigationController::push(ScreenBase* newScreen, TransitionType animation, 
-                                unsigned long duration) {
+NavResult NavigationController::push(ScreenBase* newScreen, TransitionType animation, 
+                                     unsigned long duration) {
     if (!newScreen) {
-        Serial.println("NavigationController::push - Attempted to push null screen!");
-        return;
+        Serial.println("ERROR: NavigationController::push - Null screen!");
+        return NavResult::NULL_SCREEN;
     }
     
-    // Deactivate current screen if one exists
+    if (screenStack.size() >= MAX_STACK_DEPTH) {
+        Serial.println("ERROR: NavigationController::push - Stack overflow!");
+        return NavResult::STACK_OVERFLOW;
+    }
+    
     if (!screenStack.empty()) {
         screenStack.back()->onScreenInactive();
     }
     
-    // Add new screen to stack
     screenStack.push_back(newScreen);
     newScreen->onScreenActive();
-    
-    // Start transition animation
     startTransition(animation, duration);
     
-    Serial.print("NavigationController::push - Screen: ");
+    Serial.print("NAV: Push - ");
     Serial.print(newScreen->getScreenName());
-    Serial.print(" (Stack depth: ");
+    Serial.print(" (Depth:");
     Serial.print(screenStack.size());
     Serial.println(")");
+    
+    return NavResult::SUCCESS;
 }
 
-void NavigationController::pop(TransitionType animation, unsigned long duration) {
+NavResult NavigationController::pop(TransitionType animation, unsigned long duration) {
     if (screenStack.size() <= 1) {
-        Serial.println("NavigationController::pop - Cannot pop: only one screen in stack!");
-        return;
+        Serial.println("ERROR: NavigationController::pop - At root!");
+        return NavResult::ALREADY_AT_ROOT;
     }
     
-    // Deactivate current screen
     if (!screenStack.empty()) {
         screenStack.back()->onScreenInactive();
     }
     
-    // Remove current screen
     screenStack.pop_back();
     
-    // Activate previous screen
     if (!screenStack.empty()) {
         screenStack.back()->onScreenActive();
     }
     
-    // Start transition animation (use reverse animation for back)
     startTransition(animation, duration);
     
-    Serial.print("NavigationController::pop - Returning to: ");
+    Serial.print("NAV: Pop - Back to ");
     if (!screenStack.empty()) {
         Serial.print(screenStack.back()->getScreenName());
     }
-    Serial.print(" (Stack depth: ");
+    Serial.print(" (Depth:");
     Serial.print(screenStack.size());
     Serial.println(")");
+    
+    return NavResult::SUCCESS;
 }
 
 ScreenBase* NavigationController::current() const {
-    if (screenStack.empty()) {
-        return nullptr;
-    }
-    return screenStack.back();
+    return screenStack.empty() ? nullptr : screenStack.back();
 }
 
 bool NavigationController::canGoBack() const {
@@ -84,12 +83,9 @@ size_t NavigationController::getStackDepth() const {
 }
 
 void NavigationController::update() {
-    if (screenStack.empty()) {
-        return;
+    if (!screenStack.empty()) {
+        screenStack.back()->update();
     }
-    
-    // Update current screen state
-    screenStack.back()->update();
 }
 
 void NavigationController::render(Adafruit_SSD1306& display) {
@@ -97,15 +93,13 @@ void NavigationController::render(Adafruit_SSD1306& display) {
         return;
     }
     
-    // If transitioning, render animation
     if (isTransitioning()) {
         renderTransition(display);
     } else {
-        // Otherwise just render current screen
         screenStack.back()->display(display);
     }
     
-    display.display();  // Actually send buffer to OLED
+    display.display();
 }
 
 bool NavigationController::isTransitioning() const {
@@ -127,59 +121,14 @@ void NavigationController::startTransition(TransitionType type, unsigned long du
 
 void NavigationController::renderTransition(Adafruit_SSD1306& display) {
     if (screenStack.size() < 2) {
-        // Can't transition with less than 2 screens
         screenStack.back()->display(display);
         return;
     }
     
-    float progress = currentTransition.getProgress();
-    ScreenBase* fromScreen = screenStack[screenStack.size() - 2];
-    ScreenBase* toScreen = screenStack.back();
-    
-    // Clear display for fresh drawing
     display.clearDisplay();
     
-    switch (currentTransition.type) {
-        case TransitionType::SLIDE_LEFT: {
-            // Previous screen slides left (out), new screen slides right (in)
-            int offset = (int)(screenWidth * progress);
-            
-            // Draw "from" screen sliding out to the left
-            // Note: Adafruit_SSD1306 doesn't support partial screen drawing easily,
-            // so we render to full screen and let it overflow (clipping is automatic)
-            display.setTextColor(SSD1306_WHITE);  // Clear
-            fromScreen->display(display);
-            
-            // Render new screen coming in from right
-            display.setTextColor(SSD1306_WHITE);  // Draw
-            toScreen->display(display);
-            break;
-        }
-        
-        case TransitionType::SLIDE_RIGHT: {
-            // Previous screen slides right (out), new screen slides left (in)
-            int offset = (int)(screenWidth * progress);
-            
-            fromScreen->display(display);
-            toScreen->display(display);
-            break;
-        }
-        
-        case TransitionType::FADE: {
-            // For fade effect, we just blend by rendering new screen at end
-            // For full fade effect would need more sophisticated rendering
-            if (progress < 0.5f) {
-                fromScreen->display(display);
-            } else {
-                toScreen->display(display);
-            }
-            break;
-        }
-        
-        case TransitionType::NONE:
-        case TransitionType::INSTANT:
-        default:
-            toScreen->display(display);
-            break;
-    }
+    // Only INSTANT animation works reliably on small OLED
+    // SLIDE and FADE require capabilities this display doesn't have
+    screenStack.back()->display(display);
 }
+

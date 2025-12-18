@@ -38,6 +38,7 @@ class Folder : public ScreenBase {
         void handleInput(ButtonManager& buttons) override;
         void selectNextSong();
         void selectPreviousSong();
+        ScreenType getScreenType() const override { return ScreenType::FOLDER; }
         String getScreenName() const override { return "Folder: " + folderName; }
 
     private:

@@ -18,6 +18,7 @@ public:
     void resume();
     void display(Adafruit_SSD1306 &display) override;
     void handleInput(ButtonManager& buttons) override;
+    ScreenType getScreenType() const override { return ScreenType::SONG; }
     String getScreenName() const override { return songTitle; }
 
 private:

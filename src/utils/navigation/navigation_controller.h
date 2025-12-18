@@ -4,17 +4,23 @@
 #include "Arduino.h"
 #include "screen_base.h"
 #include "screen_transition.h"
+#include "navigation_result.h"
 #include <vector>
 
 /**
  * Manages screen navigation with a stack-based system.
- * Supports forward/back navigation with smooth animations.
+ * Supports forward/back navigation with animations.
+ * 
+ * IMPORTANT: This controller does NOT own the screen objects.
+ * Caller is responsible for keeping screen objects alive for the duration
+ * they are in the navigation stack.
  * 
  * Usage:
- *   navigator.push(newScreen, TransitionType::SLIDE_LEFT);
- *   navigator.pop(TransitionType::SLIDE_RIGHT);
- *   navigator.update();  // Call in main loop
- *   navigator.render(display);  // Call to render current state
+ *   NavResult result = navigator.push(newScreen, TransitionType::SLIDE_LEFT);
+ *   if (result != NavResult::SUCCESS) { handle error }
+ *   
+ *   result = navigator.pop();
+ *   if (result != NavResult::SUCCESS) { handle error }
  */
 class NavigationController {
 private:
@@ -26,6 +32,9 @@ private:
     uint16_t screenWidth;
     uint16_t screenHeight;
     
+    // Maximum stack depth to prevent memory issues
+    static const size_t MAX_STACK_DEPTH = 10;
+    
     /**
      * Internal helper to start a new transition.
      */
@@ -33,6 +42,8 @@ private:
     
     /**
      * Render transition animation between two screens.
+     * NOTE: Only FADE animations are fully implemented.
+     * SLIDE animations require advanced rendering not available on limited OLED.
      */
     void renderTransition(Adafruit_SSD1306& display);
     
@@ -44,20 +55,25 @@ public:
      * Push a new screen onto the stack.
      * The new screen becomes active and will be rendered.
      * Animation duration defaults to 300ms.
+     * 
+     * @return NavResult indicating success or failure reason
      */
-    void push(ScreenBase* newScreen, TransitionType animation = TransitionType::SLIDE_LEFT, 
-              unsigned long duration = 300);
+    NavResult push(ScreenBase* newScreen, TransitionType animation = TransitionType::INSTANT, 
+                   unsigned long duration = 300);
     
     /**
      * Pop the current screen off the stack, returning to previous screen.
-     * Automatically reverses the animation direction (SLIDE_LEFT becomes SLIDE_RIGHT).
+     * Automatically reverses the animation direction.
      * Animation duration defaults to 300ms.
+     * 
+     * @return NavResult indicating success or failure reason
      */
-    void pop(TransitionType animation = TransitionType::SLIDE_RIGHT, 
-             unsigned long duration = 300);
+    NavResult pop(TransitionType animation = TransitionType::INSTANT, 
+                  unsigned long duration = 300);
     
     /**
      * Get the currently active screen without removing it.
+     * Returns nullptr if stack is empty (error condition).
      */
     ScreenBase* current() const;
     
@@ -92,6 +108,7 @@ public:
     /**
      * Force clear all screens from stack.
      * Useful for resetting to a known state.
+     * WARNING: Screens are NOT deleted - caller is responsible for cleanup.
      */
     void clear();
 };

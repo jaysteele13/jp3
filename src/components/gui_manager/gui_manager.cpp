@@ -2,14 +2,12 @@
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
 #include <Wire.h>
-#include "../../utils/gui/song/song.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-#define SCREEN_ADDRESS 0x3C   // Match the working example
+#define SCREEN_ADDRESS 0x3C
 
-// PINS
 #define SDA_PIN 21
 #define SCL_PIN 22
 
@@ -23,17 +21,14 @@ bool GUIManager::begin() {
     delay(500);
 
     Wire.begin(/*SDA=*/SDA_PIN, /*SCL=*/SCL_PIN);
-    
-    // Initialise Button Manager
     buttonManager.begin();
 
     if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
         return false;
-    } else {
-        Serial.println(F("SSD1306 allocation succeeded"));
     }
-
+    
+    Serial.println(F("GUIManager initialized successfully"));
     return true;
 }
 
@@ -42,8 +37,6 @@ void GUIManager::clear() {
 }
 
 void GUIManager::update() {
-    // Adding in timing to add unpredictable delays and a controlled refresh rate
-    // also bad to keep cpu at 100% usage all the time
     unsigned long currentTime = millis();
     
     if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
@@ -56,45 +49,54 @@ void GUIManager::update() {
         // Update non-rendering state
         navigator.update();
         
-        // Render to display (handles animations automatically)
+        // Render to display
         navigator.render(*display);
         
         lastUpdateTime = currentTime;
     }
 }
 
-void GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
-    if (screen) {
-        navigator.push(screen, animation, 300);  // 300ms animation duration
+NavResult GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
+    if (!screen) {
+        Serial.println("ERROR: GUIManager::pushScreen - Null screen!");
+        return NavResult::NULL_SCREEN;
     }
+    
+    NavResult result = navigator.push(screen, animation, 300);
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Navigation failed - ");
+        Serial.println(navResultToString(result));
+    }
+    
+    return result;
 }
 
-void GUIManager::popScreen(TransitionType animation) {
-    navigator.pop(animation, 300);  // 300ms animation duration
+NavResult GUIManager::popScreen(TransitionType animation) {
+    NavResult result = navigator.pop(animation, 300);
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Pop failed - ");
+        Serial.println(navResultToString(result));
+    }
+    
+    return result;
 }
 
-void GUIManager::displayCategory(Category* category) {
-    if (category) {
-        pushScreen(category, TransitionType::SLIDE_LEFT);
-    }
+NavResult GUIManager::displayCategory(Category* category) {
+    return pushScreen(category, TransitionType::INSTANT);
 }
 
-void GUIManager::displaySection(Section* section) {
-    if (section) {
-        pushScreen(section, TransitionType::SLIDE_LEFT);
-    }
+NavResult GUIManager::displaySection(Section* section) {
+    return pushScreen(section, TransitionType::INSTANT);
 }
 
-void GUIManager::displayFolder(Folder* folder) {
-    if (folder) {
-        pushScreen(folder, TransitionType::SLIDE_LEFT);
-    }
+NavResult GUIManager::displayFolder(Folder* folder) {
+    return pushScreen(folder, TransitionType::INSTANT);
 }
 
-void GUIManager::displaySong(Song* song) {
-    if (song) {
-        pushScreen(song, TransitionType::SLIDE_LEFT);
-    }
+NavResult GUIManager::displaySong(Song* song) {
+    return pushScreen(song, TransitionType::INSTANT);
 }
 
 bool GUIManager::canGoBack() const {
@@ -103,6 +105,10 @@ bool GUIManager::canGoBack() const {
 
 size_t GUIManager::getStackDepth() const {
     return navigator.getStackDepth();
+}
+
+ScreenBase* GUIManager::getCurrentScreen() const {
+    return navigator.current();
 }
 
 ButtonManager& GUIManager::getButtonManager() {

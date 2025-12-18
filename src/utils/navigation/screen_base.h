@@ -8,6 +8,19 @@
 class ButtonManager;
 
 /**
+ * Screen type enum for type identification without RTTI.
+ * Each screen class implements getScreenType() to return its type.
+ * This avoids the memory overhead of dynamic_cast/RTTI on embedded systems.
+ */
+enum class ScreenType {
+    CATEGORY,
+    SECTION,
+    FOLDER,
+    SONG,
+    UNKNOWN
+};
+
+/**
  * Abstract base class for all screens in the navigation system.
  * Each screen handles its own rendering, input, and state updates.
  */
@@ -45,7 +58,16 @@ public:
      */
     virtual void onScreenInactive() {}
     
-    // Get screen identifier for debugging
+    /**
+     * Get the type of this screen for navigation purposes.
+     * Returns the screen type without requiring RTTI.
+     * Each derived class must implement this.
+     */
+    virtual ScreenType getScreenType() const = 0;
+    
+    /**
+     * Get screen identifier for debugging.
+     */
     virtual String getScreenName() const = 0;
 };
 

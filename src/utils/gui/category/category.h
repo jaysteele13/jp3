@@ -47,6 +47,7 @@ class Category : public ScreenBase {
         CategoryInfo* loadCategoryData(int amount);
         void selectNextFolder();
         void selectPreviousFolder();
+        ScreenType getScreenType() const override { return ScreenType::CATEGORY; }
         String getScreenName() const override { return categoryName; }
 
     private:

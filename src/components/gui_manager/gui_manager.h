@@ -9,6 +9,7 @@
 #include "../../utils/gui/section/section.h"
 #include "../../utils/gui/category/category.h"
 #include "../../utils/navigation/navigation_controller.h"
+#include "../../utils/navigation/navigation_result.h"
 #include "../button_manager/button_manager.h"
 
 /**
@@ -16,6 +17,7 @@
  * 
  * Uses NavigationController for screen stack management with animations.
  * Handles non-blocking updates with fixed timing interval (50ms).
+ * All navigation methods return NavResult for error handling.
  */
 class GUIManager {
 private:
@@ -33,19 +35,20 @@ public:
     void clear();
     void update();
 
-    // Navigation methods using the navigation system
-    void pushScreen(ScreenBase* screen, TransitionType animation = TransitionType::SLIDE_LEFT);
-    void popScreen(TransitionType animation = TransitionType::SLIDE_RIGHT);
+    // Navigation methods - all return NavResult for error handling
+    NavResult pushScreen(ScreenBase* screen, TransitionType animation = TransitionType::INSTANT);
+    NavResult popScreen(TransitionType animation = TransitionType::INSTANT);
     
     // Convenience methods for common navigation
-    void displayCategory(Category* category);
-    void displaySection(Section* section);
-    void displayFolder(Folder* folder);
-    void displaySong(Song* song);
+    NavResult displayCategory(Category* category);
+    NavResult displaySection(Section* section);
+    NavResult displayFolder(Folder* folder);
+    NavResult displaySong(Song* song);
     
     // Navigation queries
     bool canGoBack() const;
     size_t getStackDepth() const;
+    ScreenBase* getCurrentScreen() const;
     
     // Button access for external navigation handling
     ButtonManager& getButtonManager();
