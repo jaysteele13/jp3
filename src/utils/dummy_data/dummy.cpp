@@ -22,7 +22,7 @@ static const SongInfo SONG_NAMES_DARK_SIDE[] = {
 // Song names for Mathrock Playlist
 static const SongInfo SONG_NAMES_MATHROCK_PLAYLIST[] = {
     {"Ants of the Sky", "Between the Buried and Me", "Mathrock Playlist", "Mathrock Playlist", 383},
-    {"Toccata", "Battles", "Mathrock Playlist", "Mathrock Playlist", 245},
+    {"Toccata", "Battles", "Mathrock Cool Playlist", "Mathrock Playlist", 245},
     {"Jane II", "Jane Doe", "Mathrock Playlist", "Mathrock Playlist", 412},
     {"Here Come the Tubular Bells", "Mike Oldfield", "Mathrock Playlist", "Mathrock Playlist", 318},
     {"Dyed in the Wool", "Don Caballero", "Mathrock Playlist", "Mathrock Playlist", 356},
@@ -78,7 +78,7 @@ struct PlaylistData {
 };
 
 static const PlaylistData PLAYLISTS[] = {
-    {"Mathrock Playlist", SONG_NAMES_MATHROCK_PLAYLIST, ARRAY_SIZE(SONG_NAMES_MATHROCK_PLAYLIST)},
+    {"Mathrock Cool Playlist", SONG_NAMES_MATHROCK_PLAYLIST, ARRAY_SIZE(SONG_NAMES_MATHROCK_PLAYLIST)},
 };
 
 // ==================== UTILITY FUNCTIONS ====================
