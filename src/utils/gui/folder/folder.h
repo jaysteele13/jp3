@@ -58,7 +58,6 @@ class Folder : public ScreenBase {
         int totalSongs;
         int currentPage;
         int selectedSongIndex;
-        SongInfo* selectedSong;
         static const int SONGS_PER_PAGE = 2;
         
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
