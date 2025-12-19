@@ -58,13 +58,13 @@ void GUIManager::update() {
     }
 }
 
-NavResult GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
+NavResult GUIManager::pushScreen(ScreenBase* screen) {
     if (!screen) {
         Serial.println("ERROR: GUIManager::pushScreen - Null screen!");
         return NavResult::NULL_SCREEN;
     }
     
-    NavResult result = navigator.push(screen, animation, 300);
+    NavResult result = navigator.push(screen);
     
     if (result != NavResult::SUCCESS) {
         Serial.print("ERROR: Navigation failed - ");
@@ -74,8 +74,8 @@ NavResult GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
     return result;
 }
 
-NavResult GUIManager::popScreen(TransitionType animation) {
-    NavResult result = navigator.pop(animation, 300);
+NavResult GUIManager::popScreen() {
+    NavResult result = navigator.pop();
     
     if (result != NavResult::SUCCESS) {
         Serial.print("ERROR: Pop failed - ");
@@ -86,19 +86,19 @@ NavResult GUIManager::popScreen(TransitionType animation) {
 }
 
 NavResult GUIManager::displayCategory(Category* category) {
-    return pushScreen(category, TransitionType::INSTANT);
+    return pushScreen(category);
 }
 
 NavResult GUIManager::displaySection(Section* section) {
-    return pushScreen(section, TransitionType::INSTANT);
+    return pushScreen(section);
 }
 
 NavResult GUIManager::displayFolder(Folder* folder) {
-    return pushScreen(folder, TransitionType::INSTANT);
+    return pushScreen(folder);
 }
 
 NavResult GUIManager::displaySong(Song* song) {
-    return pushScreen(song, TransitionType::INSTANT);
+    return pushScreen(song);
 }
 
 bool GUIManager::canGoBack() const {
@@ -141,7 +141,7 @@ void GUIManager::handleForwardNavigation() {
     }
     
     // Navigate to appropriate next screen based on current type
-    NavResult result = NavResult::INVALID_TRANSITION;
+    NavResult result = NavResult::INVALID_PARAMETERS;
     
     switch (currentType) {
         case ScreenType::SECTION: {
@@ -154,7 +154,7 @@ void GUIManager::handleForwardNavigation() {
             Serial.print((int)Utils::folderTypeToCategoryType(folderType));
             Serial.println(")");
             
-            result = pushScreen(category, TransitionType::INSTANT);
+            result = pushScreen(category);
             break;
         }
             
@@ -172,7 +172,7 @@ void GUIManager::handleForwardNavigation() {
                 Serial.print(selected->categoryName);
                 Serial.println(")");
                 
-                result = pushScreen(folder, TransitionType::INSTANT);
+                result = pushScreen(folder);
             }
             break;
         }
@@ -185,7 +185,7 @@ void GUIManager::handleForwardNavigation() {
             if (selected) {
                 auto song = ScreenFactory::createSong(selected);
                 Serial.println("NAV: Folder -> Song");
-                result = pushScreen(song, TransitionType::INSTANT);
+                result = pushScreen(song);
             }
             break;
         }
@@ -198,7 +198,7 @@ void GUIManager::handleForwardNavigation() {
             
         default:
             Serial.println("ERROR: Unknown screen type!");
-            result = NavResult::INVALID_TRANSITION;
+            result = NavResult::INVALID_PARAMETERS;
             break;
     }
     

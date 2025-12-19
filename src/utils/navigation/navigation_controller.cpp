@@ -2,18 +2,15 @@
 #include "Adafruit_SSD1306.h"
 
 NavigationController::NavigationController(uint16_t width, uint16_t height)
-    : screenWidth(width), screenHeight(height), transitionInitialized(false) {
-    currentTransition.type = TransitionType::NONE;
-    currentTransition.duration = 0;
-}
+    : screenWidth(width), screenHeight(height) {}
+
 
 NavigationController::~NavigationController() {
     // NOTE: We don't delete screens - we don't own them
     // Caller is responsible for screen lifecycle
 }
 
-NavResult NavigationController::push(ScreenBase* newScreen, TransitionType animation, 
-                                     unsigned long duration) {
+NavResult NavigationController::push(ScreenBase* newScreen) {
     if (!newScreen) {
         Serial.println("ERROR: NavigationController::push - Null screen!");
         return NavResult::NULL_SCREEN;
@@ -30,8 +27,7 @@ NavResult NavigationController::push(ScreenBase* newScreen, TransitionType anima
     
     screenStack.push_back(newScreen);
     newScreen->onScreenActive();
-    startTransition(animation, duration);
-    
+
     Serial.print("NAV: Push - ");
     Serial.print(newScreen->getScreenName());
     Serial.print(" (Depth:");
@@ -41,7 +37,7 @@ NavResult NavigationController::push(ScreenBase* newScreen, TransitionType anima
     return NavResult::SUCCESS;
 }
 
-NavResult NavigationController::pop(TransitionType animation, unsigned long duration) {
+NavResult NavigationController::pop() {
     if (screenStack.size() <= 1) {
         Serial.println("ERROR: NavigationController::pop - At root!");
         return NavResult::ALREADY_AT_ROOT;
@@ -57,7 +53,6 @@ NavResult NavigationController::pop(TransitionType animation, unsigned long dura
         screenStack.back()->onScreenActive();
     }
     
-    startTransition(animation, duration);
     
     Serial.print("NAV: Pop - Back to ");
     if (!screenStack.empty()) {
@@ -93,42 +88,17 @@ void NavigationController::render(Adafruit_SSD1306& display) {
         return;
     }
     
-    if (isTransitioning()) {
-        renderTransition(display);
-    } else {
-        screenStack.back()->display(display);
-    }
+    
+    screenStack.back()->display(display);
+    
     
     display.display();
 }
 
-bool NavigationController::isTransitioning() const {
-    return currentTransition.isAnimating();
-}
 
 void NavigationController::clear() {
     screenStack.clear();
-    currentTransition.type = TransitionType::NONE;
-    currentTransition.duration = 0;
 }
 
-void NavigationController::startTransition(TransitionType type, unsigned long duration) {
-    currentTransition.type = type;
-    currentTransition.startTime = millis();
-    currentTransition.duration = duration;
-    transitionInitialized = true;
-}
 
-void NavigationController::renderTransition(Adafruit_SSD1306& display) {
-    if (screenStack.size() < 2) {
-        screenStack.back()->display(display);
-        return;
-    }
-    
-    display.clearDisplay();
-    
-    // Only INSTANT animation works reliably on small OLED
-    // SLIDE and FADE require capabilities this display doesn't have
-    screenStack.back()->display(display);
-}
 

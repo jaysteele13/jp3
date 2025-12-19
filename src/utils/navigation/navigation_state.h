@@ -32,11 +32,6 @@ public:
     static ScreenType getPreviousLevel(ScreenType current);
     
     /**
-     * Check if navigation from one level to another is valid.
-     */
-    static bool isValidTransition(ScreenType from, ScreenType to);
-    
-    /**
      * Convert ScreenType to human-readable string.
      */
     static const char* screenTypeToString(ScreenType type);

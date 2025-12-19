@@ -10,7 +10,7 @@ enum class NavResult {
     NULL_SCREEN,               // Attempted to navigate to null screen
     ALREADY_AT_ROOT,           // Attempted to pop from root screen
     STACK_OVERFLOW,            // Stack exceeded maximum depth
-    INVALID_TRANSITION,        // Transition parameters were invalid
+    INVALID_PARAMETERS,        // Transition parameters were invalid
     FAILED                     // Generic failure
 };
 
@@ -27,8 +27,8 @@ inline const char* navResultToString(NavResult result) {
             return "ALREADY_AT_ROOT";
         case NavResult::STACK_OVERFLOW:
             return "STACK_OVERFLOW";
-        case NavResult::INVALID_TRANSITION:
-            return "INVALID_TRANSITION";
+        case NavResult::INVALID_PARAMETERS:
+            return "INVALID_PARAMETERS";
         case NavResult::FAILED:
             return "FAILED";
         default:
