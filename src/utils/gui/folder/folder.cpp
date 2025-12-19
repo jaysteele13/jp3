@@ -78,10 +78,10 @@ SongInfo* Folder::loadSongData(int amount) {
         songData = dummyData::getSongsForArtist(folderName, dataCount);
     } else if (folderType == FolderType::PLAYLISTS) {
         songData = dummyData::getSongsForPlaylist(folderName, dataCount);
+    } 
+    else if (folderType == FolderType::ALL_SONGS) {
+        songData = dummyData::getAllSongs(dataCount);
     }
-    // } else if (folderType == FolderType::ALL_SONGS) {
-    //     songData = getAllSongs(dataCount);
-    // }
 
 
     // If song data isn't null return

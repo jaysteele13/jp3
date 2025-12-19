@@ -145,16 +145,24 @@ void GUIManager::handleForwardNavigation() {
     
     switch (currentType) {
         case ScreenType::SECTION: {
-            // Section -> Category (HAS TO be folder type as we need to include All Songs which isn't a category type)
+            // Section -> Category (or directly to Folder for ALL_SONGS)
             Section* section = static_cast<Section*>(current);
             FolderType folderType = section->getSelectedFolderType();
             
-            auto category = ScreenFactory::createCategory(folderType);
-            Serial.print("NAV: Section -> Category (");
-            Serial.print((int)Utils::folderTypeToCategoryType(folderType));
-            Serial.println(")");
-            
-            result = pushScreen(category);
+            // Exception for ALL_SONGS
+            if (folderType == FolderType::ALL_SONGS) {
+                // ALL_SONGS goes directly to Folder, skipping Category
+                auto folder = ScreenFactory::createFolder(FolderType::ALL_SONGS, "All Songs");
+                Serial.println("NAV: Section -> Folder (All Songs)");
+                result = pushScreen(folder);
+            } else {
+                // Other types go to Category first
+                auto category = ScreenFactory::createCategory(folderType);
+                Serial.print("NAV: Section -> Category (");
+                Serial.print((int)Utils::folderTypeToCategoryType(folderType));
+                Serial.println(")");
+                result = pushScreen(category);
+            }
             break;
         }
             
@@ -164,8 +172,8 @@ void GUIManager::handleForwardNavigation() {
             CategoryInfo* selected = category->getSelectedCategory();
             
             if (selected) {
-                CategoryType catType = category->getCategoryType();
-                FolderType folderType = Utils::categoryTypeToFolderType(catType);
+                CategoryType categoryType = category->getCategoryType();
+                FolderType folderType = Utils::categoryTypeToFolderType(categoryType);
                 
                 auto folder = ScreenFactory::createFolder(folderType, selected->categoryName);
                 Serial.print("NAV: Category -> Folder (");

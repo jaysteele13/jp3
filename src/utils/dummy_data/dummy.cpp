@@ -220,3 +220,91 @@ CategoryInfo* dummyData::getAllPlaylists(int& count) {
     return playlists;
    
 }
+
+
+// Get All Songs for ALL_SONGS folder
+SongInfo* dummyData::getAllSongs(int& count) {
+    // First pass: count total songs from all albums and playlists
+    int totalSongs = 0;
+    
+    // Count songs from all albums
+    for (int i = 0; i < ALBUM_COUNT; ++i) {
+        totalSongs += ALBUMS[i].songCount;
+    }
+    
+    // Count songs from all playlists
+    int playlistCount = sizeof(PLAYLISTS) / sizeof(PLAYLISTS[0]);
+    for (int i = 0; i < playlistCount; ++i) {
+        totalSongs += PLAYLISTS[i].songCount;
+    }
+    
+    if (totalSongs == 0) {
+        count = 0;
+        return nullptr;
+    }
+    
+    // Second pass: collect all songs and remove duplicates
+    SongInfo* allSongs = new SongInfo[totalSongs];
+    int uniqueSongCount = 0;
+    
+    // Helper function to check if a song already exists
+    auto isDuplicate = [](const SongInfo* songs, int count, const SongInfo& newSong) {
+        for (int i = 0; i < count; ++i) {
+            if (songs[i].songName == newSong.songName && 
+                songs[i].artistName == newSong.artistName &&
+                songs[i].albumName == newSong.albumName) {
+                return true;
+            }
+        }
+        return false;
+    };
+    
+    // Add songs from all albums
+    for (int i = 0; i < ALBUM_COUNT; ++i) {
+        for (int j = 0; j < ALBUMS[i].songCount; ++j) {
+            if (!isDuplicate(allSongs, uniqueSongCount, ALBUMS[i].songs[j])) {
+                const SongInfo& source = ALBUMS[i].songs[j];
+                allSongs[uniqueSongCount].songName = source.songName;
+                allSongs[uniqueSongCount].artistName = source.artistName;
+                allSongs[uniqueSongCount].albumName = source.albumName;
+                allSongs[uniqueSongCount].playlistName = source.playlistName;
+                allSongs[uniqueSongCount].duration = source.duration;
+                uniqueSongCount++;
+            }
+        }
+    }
+    
+    // Add songs from all playlists
+    for (int i = 0; i < playlistCount; ++i) {
+        for (int j = 0; j < PLAYLISTS[i].songCount; ++j) {
+            if (!isDuplicate(allSongs, uniqueSongCount, PLAYLISTS[i].songs[j])) {
+                const SongInfo& source = PLAYLISTS[i].songs[j];
+                allSongs[uniqueSongCount].songName = source.songName;
+                allSongs[uniqueSongCount].artistName = source.artistName;
+                allSongs[uniqueSongCount].albumName = source.albumName;
+                allSongs[uniqueSongCount].playlistName = source.playlistName;
+                allSongs[uniqueSongCount].duration = source.duration;
+                uniqueSongCount++;
+            }
+        }
+    }
+    
+    // If we have duplicates, create a properly sized array
+    if (uniqueSongCount < totalSongs) {
+        SongInfo* uniqueSongs = new SongInfo[uniqueSongCount];
+        for (int i = 0; i < uniqueSongCount; ++i) {
+            const SongInfo& source = allSongs[i];
+            uniqueSongs[i].songName = source.songName;
+            uniqueSongs[i].artistName = source.artistName;
+            uniqueSongs[i].albumName = source.albumName;
+            uniqueSongs[i].playlistName = source.playlistName;
+            uniqueSongs[i].duration = source.duration;
+        }
+        delete[] allSongs;
+        count = uniqueSongCount;
+        return uniqueSongs;
+    }
+    
+    count = uniqueSongCount;
+    return allSongs;
+}
