@@ -203,6 +203,8 @@ void GUIManager::handleForwardNavigation() {
                 Folder* folder = static_cast<Folder*>(current);
                 SongInfo* selected = folder->getSelectedSong();
 
+                cachedSong->setSongData(selected);
+
                 Serial.println("NAV: Folder -> Song");
                 result = displaySong(cachedSong);
             }

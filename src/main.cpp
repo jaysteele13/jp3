@@ -4,7 +4,8 @@
 GUIManager gui;
 
 // Create screen instances (globally owned by main)
-Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
+SongInfo testSongInfo = {"Still Crazy After all of these Years", "Paul Simon", "Still Crazy After all of these Years", "", 240};
+Song testSong(&testSongInfo);
 Folder testFolder(FolderType::ALBUMS, "Abbey Road");
 Section section;
 Category category(CategoryType::PLAYLISTS);

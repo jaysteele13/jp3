@@ -12,16 +12,16 @@ void Folder::handleInput(ButtonManager& buttons) {
         selectPreviousSong();
     }
 
-    // Logic if button is hit setSelectedSong
+    // Logic if button is hit setSelectedSong look here
 
-    if(buttons.checkSelectPressed()) {
-        Serial.println("Folder: Select button pressed - navigating to Song screen");
+    // if(buttons.checkSelectPressed()) {
+    //     Serial.println("Folder: Select button pressed - navigating to Song screen");
         
-        // Set Selected Song -> this may have a race condition as this is pressed during display
-        if (songs != nullptr && totalSongs > 0) {
-            selectedSong = &songs[selectedSongIndex];
-        }
-    }
+    //     // Set Selected Song -> this may have a race condition as this is pressed during display
+    //     if (songs != nullptr && totalSongs > 0) {
+    //         selectedSong = &songs[selectedSongIndex];
+    //     }
+    // }
 }
 
 void Folder::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
