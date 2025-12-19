@@ -149,6 +149,7 @@ void GUIManager::handleForwardNavigation() {
             Section* section = static_cast<Section*>(current);
             FolderType folderType = section->getSelectedFolderType();
             
+            // Exception for ALL_SONGS
             if (folderType == FolderType::ALL_SONGS) {
                 // ALL_SONGS goes directly to Folder, skipping Category
                 auto folder = ScreenFactory::createFolder(FolderType::ALL_SONGS, "All Songs");
@@ -171,8 +172,8 @@ void GUIManager::handleForwardNavigation() {
             CategoryInfo* selected = category->getSelectedCategory();
             
             if (selected) {
-                CategoryType catType = category->getCategoryType();
-                FolderType folderType = Utils::categoryTypeToFolderType(catType);
+                CategoryType categoryType = category->getCategoryType();
+                FolderType folderType = Utils::categoryTypeToFolderType(categoryType);
                 
                 auto folder = ScreenFactory::createFolder(folderType, selected->categoryName);
                 Serial.print("NAV: Category -> Folder (");
