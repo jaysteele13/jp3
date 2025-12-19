@@ -1,8 +1,5 @@
 #include "gui_manager.h"
-#include "Adafruit_SSD1306.h"
-#include "Adafruit_GFX.h"
-#include <Wire.h>
-#include "../../utils/navigation/navigation_state.h"
+
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -153,6 +150,7 @@ void GUIManager::handleForwardNavigation() {
     // Navigate to appropriate next screen based on current type
     NavResult result = NavResult::INVALID_TRANSITION;
     
+    // this is where we can pass props to the next screen based on current selection
     switch (currentType) {
         case ScreenType::SECTION:
             // Section -> Category
@@ -164,13 +162,13 @@ void GUIManager::handleForwardNavigation() {
                 cachedCategory->resetSelection();
                 
                 // Convert FolderType to CategoryType
-                CategoryType catType = (folderType == FolderType::PLAYLISTS) ? CategoryType::PLAYLISTS :
+                CategoryType categoryType = (folderType == FolderType::PLAYLISTS) ? CategoryType::PLAYLISTS :
                                        (folderType == FolderType::ARTISTS) ? CategoryType::ARTISTS :
                                        CategoryType::ALBUMS;
                 
-                cachedCategory->setCategoryType(catType);
+                cachedCategory->setCategoryType(categoryType);
                 Serial.print("NAV: Section -> Category (");
-                Serial.print((int)catType);
+                Serial.print((int)categoryType);
                 Serial.println(")");
                 result = displayCategory(cachedCategory);
             }
@@ -186,8 +184,18 @@ void GUIManager::handleForwardNavigation() {
                     Serial.print("NAV: Category -> Folder (");
                     Serial.print(selected->categoryName);
                     Serial.println(")");
+
+                    //pass down props
+                    CategoryType categoryType = cachedCategory->getCategoryType();
+                    FolderType chosenFolderType = Utils::categoryTypeToFolderType(categoryType);
+                    cachedFolder->setFolderData(chosenFolderType, selected->categoryName);
+
+                    result = displayFolder(cachedFolder);
                 }
-                result = displayFolder(cachedFolder);
+                //pass down props
+                //cachedFolder->setFolderData(cachedCategory->getCategoryType(), selected->categoryName);
+
+                //result = displayFolder(cachedFolder);
             }
             break;
             

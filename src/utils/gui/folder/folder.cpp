@@ -46,6 +46,20 @@ Folder::Folder(FolderType folderType, String folderName) :
     songs = nullptr;
 }
 
+// Getters and Setters
+
+// Set folder data when navigating to this screen
+void Folder::setFolderData(FolderType type, String name) {
+    folderType = type;
+    folderName = name;
+}
+
+// Reset selection and page
+void Folder::resetSelection() {
+    selectedSongIndex = 0;
+    currentPage = 0;
+}
+
 SongInfo* Folder::loadSongData(int amount) {
     // Try to load real data based on folder type
     int dataCount = 0;
@@ -117,6 +131,7 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 
+// Display
 void Folder::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 

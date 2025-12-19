@@ -50,6 +50,7 @@ class Category : public ScreenBase {
         
         // Set the category type when navigating to this screen
         void setCategoryType(CategoryType type);
+        CategoryType getCategoryType() const { return categoryType; }
         
         // Get the currently selected category item
         CategoryInfo* getSelectedCategory() const;

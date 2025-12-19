@@ -38,6 +38,16 @@ class Folder : public ScreenBase {
         void handleInput(ButtonManager& buttons) override;
         void selectNextSong();
         void selectPreviousSong();
+        
+        // Set folder data when navigating to this screen
+        void setFolderData(FolderType type, String name);
+        
+        // Get the currently selected song
+        SongInfo* getSelectedSong() const;
+        
+        // Reset selection and page
+        void resetSelection();
+        
         ScreenType getScreenType() const override { return ScreenType::FOLDER; }
         String getScreenName() const override { return "Folder: " + folderName; }
 

@@ -4,13 +4,24 @@
 #include "Arduino.h"
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
+#include <Wire.h>
+
+// GUI Components
 #include "../../utils/gui/song/song.h"
 #include "../../utils/gui/folder/folder.h"
 #include "../../utils/gui/section/section.h"
 #include "../../utils/gui/category/category.h"
+
+// Navigation system
 #include "../../utils/navigation/navigation_controller.h"
 #include "../../utils/navigation/navigation_result.h"
+#include "../../utils/navigation/navigation_state.h"
+
+// External Devices
 #include "../button_manager/button_manager.h"
+
+// Utils
+#include "../../utils/utils.h"
 
 /**
  * GUIManager orchestrates the display and input for the OLED GUI system.
