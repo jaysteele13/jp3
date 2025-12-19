@@ -126,7 +126,8 @@ void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
         DisplayConfig::MARGIN_X,
         currentY,
         1,
-        availableHeaderTextWidth,
+        0,
+        DisplayConfig::SCREEN_WIDTH - DisplayConfig::MARGIN_X - counterWidth - HEADER_GAP,
         0
     );
 
@@ -159,7 +160,7 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
         currentY += DisplayConfig::SONG_SPACING;
     }
 
-    TextValidator::displayScrollingText(display, songs[songIndex].songName, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    TextValidator::displayScrollingText(display, songs[songIndex].songName, textX, currentY, 1, 0, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 
     // Display different secondary info based on folder type
@@ -170,7 +171,7 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
         secondaryInfo = songs[songIndex].artistName;
     }
     
-    TextValidator::displayScrollingText(display, secondaryInfo, textX, currentY, 1, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
+    TextValidator::displayScrollingText(display, secondaryInfo, textX, currentY, 1, 0, DisplayConfig::SCREEN_WIDTH - textX, songIndex);
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 
