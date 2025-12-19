@@ -16,10 +16,11 @@ public:
     
 private:
     static const int LINE_SUPPORT_AMOUNT = 5; // Maximum number of lines supported
+    static void drawClippedText(Adafruit_SSD1306 &display,const String &text,int startX, int y,int charWidth,int maxWidth);
     static int scrollOffsets[LINE_SUPPORT_AMOUNT]; // Support up to 10 different scrolling lines
     static unsigned long lastScrollTime[LINE_SUPPORT_AMOUNT]; // Separate timing for each line
     static const int SCROLL_SPEED = 50; // milliseconds between scroll updates
-    static const int SCROLL_LOOP_GAP = 20; // pixels of gap between end and start when looping
+    static const int SCROLL_LOOP_GAP = 40; // pixels of gap between end and start when looping
     
 };
 

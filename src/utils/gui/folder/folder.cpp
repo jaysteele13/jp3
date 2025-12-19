@@ -102,22 +102,45 @@ SongInfo* Folder::loadSongData(int amount) {
 
 
 void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
-    // Calculate width needed for song counter
-    String songCounter = String(selectedSongIndex + 1) + "/" + String(totalSongs);
-    int counterWidth = TextValidator::getTextWidth(songCounter, 1);
-    int availableHeaderTextWidth = DisplayConfig::SCREEN_WIDTH - counterWidth - DisplayConfig::MARGIN_X * 2;
-    
-    // Display folder name with adjusted width to avoid overlap
-    TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, availableHeaderTextWidth, 0);
-    
-    // Display song counter on the right side
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(DisplayConfig::SCREEN_WIDTH - counterWidth - DisplayConfig::MARGIN_X, currentY);
-    display.println(songCounter);
-    
+    display.setTextWrap(false); 
+
+    // Build song counter text (e.g. "1/10")
+    String songCounter = String(selectedSongIndex + 1) + "/" + String(totalSongs);
+    int counterWidth = TextValidator::getTextWidth(songCounter, 1);
+
+    // Visual gap between scrolling text and counter
+    constexpr int HEADER_GAP = 6; // pixels
+
+    // Calculate available width for scrolling text ONLY
+    int availableHeaderTextWidth =
+        DisplayConfig::SCREEN_WIDTH
+        - DisplayConfig::MARGIN_X * 2
+        - counterWidth
+        - HEADER_GAP;
+
+    TextValidator::displayScrollingText(
+        display,
+        folderName,
+        DisplayConfig::MARGIN_X,
+        currentY,
+        1,
+        availableHeaderTextWidth,
+        0
+    );
+
+    int counterX =
+        DisplayConfig::SCREEN_WIDTH
+        - DisplayConfig::MARGIN_X
+        - counterWidth;
+
+    display.setCursor(counterX, currentY);
+    display.print(songCounter);  
+
     currentY += DisplayConfig::LINE_HEIGHT;
 }
+
 
 void Folder::drawDivider(Adafruit_SSD1306 &display, int &currentY) {
     display.drawLine(0, currentY, DisplayConfig::SCREEN_WIDTH, currentY, SSD1306_WHITE);
