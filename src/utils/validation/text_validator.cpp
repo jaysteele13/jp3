@@ -16,42 +16,63 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
         return;
     }
     
-    // Character-by-character scrolling
+    // True circular scrolling - text wraps from right to left continuously
     unsigned long currentTime = millis();
     if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
         scrollOffsets[lineId]++;
-        // Reset when text has completely scrolled past the display
-        if (scrollOffsets[lineId] > textWidth + maxWidth) {
+        // Loop after full text width plus gap for seamless circular effect
+        if (scrollOffsets[lineId] > textWidth + SCROLL_LOOP_GAP) {
             scrollOffsets[lineId] = 0; // Reset to start
         }
         lastScrollTime[lineId] = currentTime;
     }
     
-    // Calculate which characters to display based on scroll position
-    int charWidth = 7 * textSize; // Approximate character width
-    int startChar = scrollOffsets[lineId] / charWidth;
-    int visibleChars = maxWidth / charWidth;
+    int charWidth = 6 * textSize; // Use exact character width from getTextWidth calculation
     
-    // Ensure we don't go beyond text length
-    if (startChar >= text.length()) {
-        startChar = 0;
-        scrollOffsets[lineId] = 0;
+    // Calculate exact positions for both parts of text
+    int firstPartPixelOffset = scrollOffsets[lineId] % charWidth;
+    int firstCursorX = x - firstPartPixelOffset;
+    
+    // Calculate how much of the text has scrolled off the left edge
+    int scrolledOffWidth = scrollOffsets[lineId];
+    int visibleFirstWidth = textWidth - scrolledOffWidth;
+    
+    // Display first part (the tail of the text)
+    if (scrolledOffWidth < textWidth) {
+        int firstStartChar = scrollOffsets[lineId] / charWidth;
+        int maxFirstChars = (maxWidth / charWidth) + 2; // Buffer for smooth rendering
+        int firstEndChar = firstStartChar + maxFirstChars;
+        
+        if (firstEndChar > text.length()) {
+            firstEndChar = text.length();
+        }
+        
+        if (firstStartChar < text.length()) {
+            String firstPart = text.substring(firstStartChar, firstEndChar);
+            display.setCursor(firstCursorX, y);
+            display.print(firstPart);
+        }
     }
     
-    // Extract the visible portion of text
-    int endChar = startChar + visibleChars + 1;
-    if (endChar > text.length()) {
-        endChar = text.length();
+    // Display second part (the head of text that wraps around)
+    if (scrolledOffWidth > SCROLL_LOOP_GAP) {
+        int availableSpace = maxWidth - visibleFirstWidth - SCROLL_LOOP_GAP;
+        if (availableSpace > 0) {
+            int secondCursorX = x + visibleFirstWidth + SCROLL_LOOP_GAP;
+            int maxSecondChars = availableSpace / charWidth;
+            int secondEndChar = maxSecondChars;
+            
+            if (secondEndChar > text.length()) {
+                secondEndChar = text.length();
+            }
+            
+            if (secondEndChar > 0) {
+                String secondPart = text.substring(0, secondEndChar);
+                display.setCursor(secondCursorX, y);
+                display.print(secondPart);
+            }
+        }
     }
-    String visibleText = text.substring(startChar, endChar);
-    
-    // Calculate cursor position for smooth scrolling
-    int pixelOffset = scrollOffsets[lineId] % charWidth;
-    int cursorX = x - pixelOffset;
-    
-    // Display the visible text
-    display.setCursor(cursorX, y);
-    display.println(visibleText);
 }
 void TextValidator::displayPlayIcon(Adafruit_SSD1306 &display, int x, int y) {
     // Simple play icon (triangle)
