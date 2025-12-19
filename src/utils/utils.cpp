@@ -12,3 +12,16 @@ FolderType Utils::categoryTypeToFolderType(CategoryType categoryType) {
                 return FolderType::ALL_SONGS; // Fallback
         }
     }
+
+CategoryType Utils::folderTypeToCategoryType(FolderType folderType) {
+        switch (folderType) {
+            case FolderType::ALBUMS:
+                return CategoryType::ALBUMS;
+            case FolderType::ARTISTS:
+                return CategoryType::ARTISTS;
+            case FolderType::PLAYLISTS:
+                return CategoryType::PLAYLISTS;
+            default:
+                return CategoryType::ALBUMS; // Fallback
+        }
+    }

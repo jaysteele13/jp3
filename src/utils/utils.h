@@ -11,6 +11,7 @@ class Utils {
 public:
     // Utility functions can be added here
     static FolderType categoryTypeToFolderType(CategoryType categoryType);
+    static CategoryType folderTypeToCategoryType(FolderType folderType);
 
 };
 

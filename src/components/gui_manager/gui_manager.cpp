@@ -147,7 +147,7 @@ void GUIManager::handleForwardNavigation() {
         return;
     }
     
-    // Navigate to appropriate next screen based on current type
+    // Navigate to appropriate next screen based on current type -> AUTO as this as if it doesn't change something went wrong.
     NavResult result = NavResult::INVALID_TRANSITION;
     
     // this is where we can pass props to the next screen based on current selection
@@ -162,9 +162,7 @@ void GUIManager::handleForwardNavigation() {
                 cachedCategory->resetSelection();
                 
                 // Convert FolderType to CategoryType
-                CategoryType categoryType = (folderType == FolderType::PLAYLISTS) ? CategoryType::PLAYLISTS :
-                                       (folderType == FolderType::ARTISTS) ? CategoryType::ARTISTS :
-                                       CategoryType::ALBUMS;
+                CategoryType categoryType = Utils::folderTypeToCategoryType(folderType);
                 
                 cachedCategory->setCategoryType(categoryType);
                 Serial.print("NAV: Section -> Category (");
@@ -202,6 +200,9 @@ void GUIManager::handleForwardNavigation() {
         case ScreenType::FOLDER:
             // Folder -> Song
             if (cachedSong) {
+                Folder* folder = static_cast<Folder*>(current);
+                SongInfo* selected = folder->getSelectedSong();
+
                 Serial.println("NAV: Folder -> Song");
                 result = displaySong(cachedSong);
             }

@@ -20,14 +20,12 @@ public:
     void handleInput(ButtonManager& buttons) override;
     ScreenType getScreenType() const override { return ScreenType::SONG; }
     String getScreenName() const override { return songTitle; }
+    SongInfo setSongData(SongInfo songInfo);
 
 private:
-    String songTitle;
-    int duration;
+    SongInfo songInfo;
     bool isPlaying;
-    String albumName;
-    String artistName;
-    String playlistName;
+   
 };
 
 #endif

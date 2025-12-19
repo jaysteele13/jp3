@@ -11,10 +11,25 @@ void Folder::handleInput(ButtonManager& buttons) {
         Serial.println("Folder: Up button pressed - selecting previous song");
         selectPreviousSong();
     }
+
+    // Logic if button is hit setSelectedSong
+
+    if(buttons.checkSelectPressed()) {
+        Serial.println("Folder: Select button pressed - navigating to Song screen");
+        
+        // Set Selected Song -> this may have a race condition as this is pressed during display
+        if (songs != nullptr && totalSongs > 0) {
+            selectedSong = &songs[selectedSongIndex];
+        }
+    }
 }
 
 void Folder::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
     display.drawRect(x, y, width, height, SSD1306_WHITE);
+}
+
+SongInfo* Folder::getSelectedSong() {
+    return selectedSong;
 }
 
 void Folder::selectNextSong() {

@@ -43,7 +43,7 @@ class Folder : public ScreenBase {
         void setFolderData(FolderType type, String name);
         
         // Get the currently selected song
-        SongInfo* getSelectedSong() const;
+        SongInfo* getSelectedSong();
         
         // Reset selection and page
         void resetSelection();
@@ -58,6 +58,7 @@ class Folder : public ScreenBase {
         int totalSongs;
         int currentPage;
         int selectedSongIndex;
+        SongInfo* selectedSong;
         static const int SONGS_PER_PAGE = 2;
         
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
