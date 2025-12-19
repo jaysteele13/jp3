@@ -3,56 +3,65 @@
 int TextValidator::scrollOffsets[LINE_SUPPORT_AMOUNT] = {0};
 unsigned long TextValidator::lastScrollTime[LINE_SUPPORT_AMOUNT] = {0};
 
-void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int maxWidth, int lineId) {
+void TextValidator::drawClippedText(
+    Adafruit_SSD1306 &display,
+    const String &text,
+    int textX,
+    int y,
+    int charWidth,
+    int clipLeft,
+    int clipRight // Screen Wdith
+) {
+    // Determine first visible character
+    int firstChar = 0;
+    if (textX < clipLeft) {
+        firstChar = (clipLeft - textX) / charWidth;
+    }
+
+    int drawX = textX + firstChar * charWidth;
+
+    // Determine how many characters fit before clipRight
+    int maxChars = (clipRight - drawX) / charWidth;
+
+    if (maxChars <= 0 || firstChar >= text.length()) return;
+
+    int endChar = firstChar + maxChars;
+    if (endChar > text.length()) endChar = text.length();
+
+    display.setCursor(drawX, y);
+    display.print(text.substring(firstChar, endChar));
+}
+
+
+
+void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text, int x, int y, int textSize, int clipLeft, int clipRight, int lineId) {
     display.setTextSize(textSize);
     display.setTextColor(SSD1306_WHITE);
-    
-    int textWidth = getTextWidth(text, textSize);
-    
-    if (textWidth <= maxWidth) {
-        // Text fits, just display it normally
-        display.setCursor(x, y);
-        display.println(text);
+    display.setTextWrap(false);
+
+    const int charWidth = 6 * textSize;
+    const int textWidth = text.length() * charWidth;
+    const int regionWidth = clipRight - clipLeft;
+
+    // Static text case
+    if (textWidth <= regionWidth) {
+        drawClippedText(display, text, x, y, charWidth, clipLeft, clipRight);
         return;
     }
-    
-    // Character-by-character scrolling
-    unsigned long currentTime = millis();
-    if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
+
+    unsigned long now = millis();
+    if (now - lastScrollTime[lineId] >= SCROLL_SPEED) {
         scrollOffsets[lineId]++;
-        // Reset when text has completely scrolled past the display
-        if (scrollOffsets[lineId] > textWidth + maxWidth) {
-            scrollOffsets[lineId] = 0; // Reset to start
-        }
-        lastScrollTime[lineId] = currentTime;
+        lastScrollTime[lineId] = now;
     }
-    
-    // Calculate which characters to display based on scroll position
-    int charWidth = 7 * textSize; // Approximate character width
-    int startChar = scrollOffsets[lineId] / charWidth;
-    int visibleChars = maxWidth / charWidth;
-    
-    // Ensure we don't go beyond text length
-    if (startChar >= text.length()) {
-        startChar = 0;
-        scrollOffsets[lineId] = 0;
-    }
-    
-    // Extract the visible portion of text
-    int endChar = startChar + visibleChars + 1;
-    if (endChar > text.length()) {
-        endChar = text.length();
-    }
-    String visibleText = text.substring(startChar, endChar);
-    
-    // Calculate cursor position for smooth scrolling
-    int pixelOffset = scrollOffsets[lineId] % charWidth;
-    int cursorX = x - pixelOffset;
-    
-    // Display the visible text
-    display.setCursor(cursorX, y);
-    display.println(visibleText);
+
+    const int totalWidth = textWidth + SCROLL_LOOP_GAP;
+    int offset = scrollOffsets[lineId] % totalWidth;
+
+    drawClippedText(display, text, x - offset, y, charWidth, clipLeft, clipRight);
+    drawClippedText(display, text, x - offset + totalWidth, y, charWidth, clipLeft, clipRight);
 }
+
 void TextValidator::displayPlayIcon(Adafruit_SSD1306 &display, int x, int y) {
     // Simple play icon (triangle)
     display.fillTriangle(x, y, x, y + 10, x + 8, y + 5, SSD1306_WHITE);

@@ -48,7 +48,7 @@ void Song::display(Adafruit_SSD1306 &display) {
     // Don't reset scroll offsets - let them accumulate for smooth scrolling
     
     // Title with scrolling (lineId 0)
-    TextValidator::displayScrollingText(display, songInfo->songName, startX, currentY, 1, 128, 0);
+    TextValidator::displayScrollingText(display, songInfo->songName, startX, currentY, 1, 0, 128, 0);
     currentY += lineHeight;
     
     // Progress bar
@@ -57,7 +57,7 @@ void Song::display(Adafruit_SSD1306 &display) {
     currentY += 8;
     
     // Artist with scrolling (lineId 1) - force scroll test
-    TextValidator::displayScrollingText(display, songInfo->artistName, startX, currentY, 2, 128, 1);
+    TextValidator::displayScrollingText(display, songInfo->artistName, startX, currentY, 2, 0, 128, 1);
     currentY += (lineHeight * 2);
     
     if(isPlaying) {

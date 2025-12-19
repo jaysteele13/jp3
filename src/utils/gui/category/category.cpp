@@ -132,19 +132,27 @@ void Category::drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &curre
         else {
             drawSmallBitmap(display, pointerX, (currentY-2)); // to centre bitmap
         }
-        textX = pointerX + 16; // Leave space for the small bitmap
+        textX = pointerX + 16; // test; // Leave space for the small bitmap
     } else if (!isAlbum) {
         // Only add static spacing for non-album categories
         currentY += CategoryConfig::FOLDER_SPACING;
     }
 
     // Display folder name (category name)
-    TextValidator::displayScrollingText(display, categories[folderIndex].categoryName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex);
+    TextValidator::displayScrollingText(display, categories[folderIndex].categoryName, (textX), currentY, 1, textX, CategoryConfig::SCREEN_WIDTH, folderIndex);
     currentY += CategoryConfig::LINE_HEIGHT;
 
     // Display artist name if available (for albums)
     if (categories[folderIndex].artistName.length() > 0) {
-        TextValidator::displayScrollingText(display, categories[folderIndex].artistName, textX, currentY, 1, CategoryConfig::SCREEN_WIDTH - textX, folderIndex + 100);
+        TextValidator::displayScrollingText(display, 
+            categories[folderIndex].artistName, 
+            textX, 
+            currentY, 
+            1,
+            textX,
+            CategoryConfig::SCREEN_WIDTH, 
+            folderIndex + 100);
+            
         currentY += CategoryConfig::LINE_HEIGHT;
     }
 }
