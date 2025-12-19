@@ -10,9 +10,7 @@
 #define SCL_PIN 22
 
 GUIManager::GUIManager() 
-    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT),
-      cachedCategory(nullptr), cachedFolder(nullptr), 
-      cachedSong(nullptr), cachedSection(nullptr) {
+    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 }
 
@@ -119,12 +117,7 @@ ButtonManager& GUIManager::getButtonManager() {
     return buttonManager;
 }
 
-void GUIManager::setScreenCache(Section* section, Category* category, Folder* folder, Song* song) {
-    cachedSection = section;
-    cachedCategory = category;
-    cachedFolder = folder;
-    cachedSong = song;
-}
+
 
 void GUIManager::handleForwardNavigation() {
     if (!buttonManager.checkSelectPressed()) {
@@ -147,68 +140,55 @@ void GUIManager::handleForwardNavigation() {
         return;
     }
     
-    // Navigate to appropriate next screen based on current type -> AUTO as this as if it doesn't change something went wrong.
+    // Navigate to appropriate next screen based on current type
     NavResult result = NavResult::INVALID_TRANSITION;
     
-    // this is where we can pass props to the next screen based on current selection
     switch (currentType) {
-        case ScreenType::SECTION:
-            // Section -> Category
-            if (cachedCategory) {
-                Section* section = static_cast<Section*>(current);
-                FolderType folderType = section->getSelectedFolderType();
-                
-                // Reset category state before setting new data
-                cachedCategory->resetSelection();
-                
-                // Convert FolderType to CategoryType
-                CategoryType categoryType = Utils::folderTypeToCategoryType(folderType);
-                
-                cachedCategory->setCategoryType(categoryType);
-                Serial.print("NAV: Section -> Category (");
-                Serial.print((int)categoryType);
-                Serial.println(")");
-                result = displayCategory(cachedCategory);
-            }
-            break;
+        case ScreenType::SECTION: {
+            // Section -> Category (HAS TO be folder type as we need to include All Songs which isn't a category type)
+            Section* section = static_cast<Section*>(current);
+            FolderType folderType = section->getSelectedFolderType();
             
-        case ScreenType::CATEGORY:
+            auto category = ScreenFactory::createCategory(folderType);
+            Serial.print("NAV: Section -> Category (");
+            Serial.print((int)Utils::folderTypeToCategoryType(folderType));
+            Serial.println(")");
+            
+            result = pushScreen(category, TransitionType::INSTANT);
+            break;
+        }
+            
+        case ScreenType::CATEGORY: {
             // Category -> Folder
-            if (cachedFolder) {
-                Category* category = static_cast<Category*>(current);
-                CategoryInfo* selected = category->getSelectedCategory();
-                
-                if (selected) {
-                    Serial.print("NAV: Category -> Folder (");
-                    Serial.print(selected->categoryName);
-                    Serial.println(")");
-
-                    //pass down props
-                    CategoryType categoryType = cachedCategory->getCategoryType();
-                    FolderType chosenFolderType = Utils::categoryTypeToFolderType(categoryType);
-                    cachedFolder->setFolderData(chosenFolderType, selected->categoryName);
-
-                    result = displayFolder(cachedFolder);
-                }
-                //pass down props
-                //cachedFolder->setFolderData(cachedCategory->getCategoryType(), selected->categoryName);
-
-                //result = displayFolder(cachedFolder);
-            }
-            break;
+            Category* category = static_cast<Category*>(current);
+            CategoryInfo* selected = category->getSelectedCategory();
             
-        case ScreenType::FOLDER:
-            // Folder -> Song
-            if (cachedSong) {
-                Folder* folder = static_cast<Folder*>(current);
-                SongInfo* selected = folder->getSelectedSong();
-
-                cachedSong->setSongData(selected);
-
-                Serial.println("NAV: Folder -> Song");
-                result = displaySong(cachedSong);
+            if (selected) {
+                CategoryType catType = category->getCategoryType();
+                FolderType folderType = Utils::categoryTypeToFolderType(catType);
+                
+                auto folder = ScreenFactory::createFolder(folderType, selected->categoryName);
+                Serial.print("NAV: Category -> Folder (");
+                Serial.print(selected->categoryName);
+                Serial.println(")");
+                
+                result = pushScreen(folder, TransitionType::INSTANT);
             }
             break;
+        }
+            
+        case ScreenType::FOLDER: {
+            // Folder -> Song
+            Folder* folder = static_cast<Folder*>(current);
+            SongInfo* selected = folder->getSelectedSong();
+            
+            if (selected) {
+                auto song = ScreenFactory::createSong(selected);
+                Serial.println("NAV: Folder -> Song");
+                result = pushScreen(song, TransitionType::INSTANT);
+            }
+            break;
+        }
             
         case ScreenType::SONG:
             // Can't go deeper

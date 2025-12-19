@@ -6,12 +6,6 @@
 #include "Adafruit_GFX.h"
 #include <Wire.h>
 
-// GUI Components
-#include "../../utils/gui/song/song.h"
-#include "../../utils/gui/folder/folder.h"
-#include "../../utils/gui/section/section.h"
-#include "../../utils/gui/category/category.h"
-
 // Navigation system
 #include "../../utils/navigation/navigation_controller.h"
 #include "../../utils/navigation/navigation_result.h"
@@ -22,6 +16,9 @@
 
 // Utils
 #include "../../utils/utils.h"
+
+// Factory
+#include "screen_factory.h"
 
 /**
  * GUIManager orchestrates the display and input for the OLED GUI system.
@@ -39,12 +36,6 @@ private:
     // Non-blocking timing
     unsigned long lastUpdateTime;
     static const unsigned long UPDATE_INTERVAL = 50; // ms
-    
-    // Screen instances for navigation
-    Category* cachedCategory;
-    Folder* cachedFolder;
-    Song* cachedSong;
-    Section* cachedSection;
     
     // Internal navigation handling
     void handleForwardNavigation();
@@ -66,8 +57,7 @@ public:
     NavResult displayFolder(Folder* folder);
     NavResult displaySong(Song* song);
     
-    // Setup screen cache for automatic navigation
-    void setScreenCache(Section* section, Category* category, Folder* folder, Song* song);
+    
     
     // Navigation queries
     bool canGoBack() const;
