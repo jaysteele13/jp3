@@ -102,7 +102,20 @@ SongInfo* Folder::loadSongData(int amount) {
 
 
 void Folder::drawHeader(Adafruit_SSD1306 &display, int &currentY) {
-    TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, DisplayConfig::SCREEN_WIDTH, 0);
+    // Calculate width needed for song counter
+    String songCounter = String(selectedSongIndex + 1) + "/" + String(totalSongs);
+    int counterWidth = TextValidator::getTextWidth(songCounter, 1);
+    int availableHeaderTextWidth = DisplayConfig::SCREEN_WIDTH - counterWidth - DisplayConfig::MARGIN_X * 2;
+    
+    // Display folder name with adjusted width to avoid overlap
+    TextValidator::displayScrollingText(display, folderName, DisplayConfig::MARGIN_X, currentY, 1, availableHeaderTextWidth, 0);
+    
+    // Display song counter on the right side
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(DisplayConfig::SCREEN_WIDTH - counterWidth - DisplayConfig::MARGIN_X, currentY);
+    display.println(songCounter);
+    
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 

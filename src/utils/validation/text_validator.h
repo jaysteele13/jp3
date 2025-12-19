@@ -12,9 +12,9 @@ public:
     static void displayPauseIcon(Adafruit_SSD1306 &display, int x, int y);
     static void resetScrollOffsets();
     static bool needsScrolling(String text, int textSize, int maxWidth = 128);
+    static int getTextWidth(String text, int textSize);
     
 private:
-    static int getTextWidth(String text, int textSize);
     static const int LINE_SUPPORT_AMOUNT = 5; // Maximum number of lines supported
     static int scrollOffsets[LINE_SUPPORT_AMOUNT]; // Support up to 10 different scrolling lines
     static unsigned long lastScrollTime[LINE_SUPPORT_AMOUNT]; // Separate timing for each line
