@@ -22,6 +22,9 @@ public:
 
     // Get all playlists as CategoryInfo
     static CategoryInfo* getAllPlaylists(int& count);
+
+    // Get All Songs
+    static SongInfo* getAllSongs(int& count);
 };
 
 #endif

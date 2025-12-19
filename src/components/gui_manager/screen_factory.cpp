@@ -10,6 +10,8 @@ Folder* ScreenFactory::createFolder(FolderType folderType, const String& categor
     return new Folder(folderType, categoryName);
 }
 
+
+
 Song* ScreenFactory::createSong(const SongInfo* songInfo) {
     return new Song(songInfo);
 }
