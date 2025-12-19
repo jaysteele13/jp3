@@ -29,47 +29,78 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
     
     int charWidth = 6 * textSize; // Use exact character width from getTextWidth calculation
     
-    // Calculate exact positions for both parts of text
-    int firstPartPixelOffset = scrollOffsets[lineId] % charWidth;
-    int firstCursorX = x - firstPartPixelOffset;
-    
-    // Calculate how much of the text has scrolled off the left edge
-    int scrolledOffWidth = scrollOffsets[lineId];
-    int visibleFirstWidth = textWidth - scrolledOffWidth;
+    // Security: Calculate safe boundaries to prevent overflow
+    int maxDisplayX = x + maxWidth;
+    int safeMaxChars = (maxWidth / charWidth) + 1; // +1 for safety margin
+    int scrollOffset = scrollOffsets[lineId];
     
     // Display first part (the tail of the text)
-    if (scrolledOffWidth < textWidth) {
-        int firstStartChar = scrollOffsets[lineId] / charWidth;
-        int maxFirstChars = (maxWidth / charWidth) + 2; // Buffer for smooth rendering
-        int firstEndChar = firstStartChar + maxFirstChars;
+    if (scrollOffset < textWidth) {
+        int firstStartChar = scrollOffset / charWidth;
+        int firstEndChar = firstStartChar + safeMaxChars;
         
+        // Security: Boundary checks
         if (firstEndChar > text.length()) {
             firstEndChar = text.length();
         }
+        if (firstStartChar >= text.length()) {
+            firstStartChar = text.length() - 1;
+        }
         
-        if (firstStartChar < text.length()) {
+        if (firstStartChar < text.length() && firstEndChar > firstStartChar) {
             String firstPart = text.substring(firstStartChar, firstEndChar);
-            display.setCursor(firstCursorX, y);
-            display.print(firstPart);
+            int firstCursorX = x - (scrollOffset % charWidth);
+            
+            // Security: Ensure cursor doesn't go negative or beyond bounds
+            if (firstCursorX >= x - charWidth && firstCursorX < maxDisplayX) {
+                display.setCursor(firstCursorX, y);
+                
+                // Security: Calculate exact text width and truncate if needed
+                int firstPartWidth = firstPart.length() * charWidth;
+                int availableWidth = maxDisplayX - firstCursorX;
+                if (firstPartWidth > availableWidth) {
+                    int truncationPoint = availableWidth / charWidth;
+                    if (truncationPoint < firstPart.length()) {
+                        firstPart = firstPart.substring(0, truncationPoint);
+                    }
+                }
+                
+                display.print(firstPart);
+            }
         }
     }
     
     // Display second part (the head of text that wraps around)
-    if (scrolledOffWidth > SCROLL_LOOP_GAP) {
+    int scrolledOffWidth = scrollOffset;
+    int visibleFirstWidth = (textWidth > scrolledOffWidth) ? (textWidth - scrolledOffWidth) : 0;
+    
+    // Security: Only show second part if enough space with proper gap
+    if (scrolledOffWidth > SCROLL_LOOP_GAP && visibleFirstWidth > 0) {
         int availableSpace = maxWidth - visibleFirstWidth - SCROLL_LOOP_GAP;
-        if (availableSpace > 0) {
+        
+        if (availableSpace > charWidth) { // Need at least one character space
             int secondCursorX = x + visibleFirstWidth + SCROLL_LOOP_GAP;
-            int maxSecondChars = availableSpace / charWidth;
-            int secondEndChar = maxSecondChars;
             
-            if (secondEndChar > text.length()) {
-                secondEndChar = text.length();
-            }
-            
-            if (secondEndChar > 0) {
-                String secondPart = text.substring(0, secondEndChar);
-                display.setCursor(secondCursorX, y);
-                display.print(secondPart);
+            // Security: Ensure second part starts within display bounds
+            if (secondCursorX < maxDisplayX - charWidth) {
+                int maxSecondChars = availableSpace / charWidth;
+                int secondEndChar = maxSecondChars;
+                
+                // Security: Boundary checks
+                if (secondEndChar > text.length()) {
+                    secondEndChar = text.length();
+                }
+                
+                if (secondEndChar > 0) {
+                    String secondPart = text.substring(0, secondEndChar);
+                    
+                    // Security: Final boundary check before display
+                    int secondPartWidth = secondPart.length() * charWidth;
+                    if (secondCursorX + secondPartWidth <= maxDisplayX) {
+                        display.setCursor(secondCursorX, y);
+                        display.print(secondPart);
+                    }
+                }
             }
         }
     }

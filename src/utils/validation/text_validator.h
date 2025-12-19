@@ -19,7 +19,7 @@ private:
     static int scrollOffsets[LINE_SUPPORT_AMOUNT]; // Support up to 10 different scrolling lines
     static unsigned long lastScrollTime[LINE_SUPPORT_AMOUNT]; // Separate timing for each line
     static const int SCROLL_SPEED = 50; // milliseconds between scroll updates
-    static const int SCROLL_LOOP_GAP = 4; // pixels of gap between end and start when looping
+    static const int SCROLL_LOOP_GAP = 20; // pixels of gap between end and start when looping
     
 };
 
