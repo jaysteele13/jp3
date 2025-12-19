@@ -48,8 +48,8 @@ public:
     void update();
 
     // Navigation methods - all return NavResult for error handling
-    NavResult pushScreen(ScreenBase* screen, TransitionType animation = TransitionType::INSTANT);
-    NavResult popScreen(TransitionType animation = TransitionType::INSTANT);
+    NavResult pushScreen(ScreenBase* screen);
+    NavResult popScreen();
     
     // Convenience methods for common navigation
     NavResult displayCategory(Category* category);

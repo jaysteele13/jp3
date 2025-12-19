@@ -39,13 +39,6 @@ ScreenType NavigationState::getPreviousLevel(ScreenType current) {
     }
 }
 
-bool NavigationState::isValidTransition(ScreenType from, ScreenType to) {
-    ScreenType nextExpected = getNextLevel(from);
-    ScreenType prevExpected = getPreviousLevel(from);
-    
-    return (to == nextExpected || to == prevExpected || to == from);
-}
-
 const char* NavigationState::screenTypeToString(ScreenType type) {
     switch (type) {
         case ScreenType::CATEGORY:

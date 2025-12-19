@@ -3,7 +3,6 @@
 
 #include "Arduino.h"
 #include "screen_base.h"
-#include "screen_transition.h"
 #include "navigation_result.h"
 #include <vector>
 
@@ -25,8 +24,6 @@
 class NavigationController {
 private:
     std::vector<ScreenBase*> screenStack;
-    ScreenTransition currentTransition;
-    bool transitionInitialized;
     
     // Display dimensions for animations
     uint16_t screenWidth;
@@ -34,18 +31,7 @@ private:
     
     // Maximum stack depth to prevent memory issues
     static const size_t MAX_STACK_DEPTH = 10;
-    
-    /**
-     * Internal helper to start a new transition.
-     */
-    void startTransition(TransitionType type, unsigned long duration);
-    
-    /**
-     * Render transition animation between two screens.
-     * NOTE: Only FADE animations are fully implemented.
-     * SLIDE animations require advanced rendering not available on limited OLED.
-     */
-    void renderTransition(Adafruit_SSD1306& display);
+
     
 public:
     NavigationController(uint16_t width = 128, uint16_t height = 64);
@@ -58,8 +44,7 @@ public:
      * 
      * @return NavResult indicating success or failure reason
      */
-    NavResult push(ScreenBase* newScreen, TransitionType animation = TransitionType::INSTANT, 
-                   unsigned long duration = 300);
+    NavResult push(ScreenBase* newScreen);
     
     /**
      * Pop the current screen off the stack, returning to previous screen.
@@ -68,8 +53,7 @@ public:
      * 
      * @return NavResult indicating success or failure reason
      */
-    NavResult pop(TransitionType animation = TransitionType::INSTANT, 
-                  unsigned long duration = 300);
+    NavResult pop();
     
     /**
      * Get the currently active screen without removing it.
@@ -99,11 +83,6 @@ public:
      * Should be called once per main loop iteration.
      */
     void render(Adafruit_SSD1306& display);
-    
-    /**
-     * Check if any animation is currently playing.
-     */
-    bool isTransitioning() const;
     
     /**
      * Force clear all screens from stack.
