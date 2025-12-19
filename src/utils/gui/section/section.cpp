@@ -1,6 +1,19 @@
 #include "section.h"
+#include "../../../components/button_manager/button_manager.h"
 
-Section::Section() : selectedFolderIndex(0), currentPage(0), screenActive(false) {}
+void Section::handleInput(ButtonManager& buttons) {
+    if (buttons.checkDownPressed()) {
+        Serial.println("Section: Down button pressed - navigating to next screen");
+        nextPage();
+    }
+    
+    if (buttons.checkUpPressed()) {
+        Serial.println("Section: Up button pressed - navigating to previous screen");
+        previousPage();
+    }
+}
+
+Section::Section() : selectedFolderIndex(0), currentPage(0) {}
 
 static const int FRAME_WIDTH = 24;
 static const int FRAME_HEIGHT = 24;
@@ -45,4 +58,19 @@ void Section::display(Adafruit_SSD1306 &display) {
     drawCurrentScreen(display);
 
     display.display();
+}
+
+FolderType Section::getSelectedFolderType() const {
+    switch (currentPage) {
+        case 0:
+            return FolderType::PLAYLISTS;
+        case 1:
+            return FolderType::ALBUMS;
+        case 2:
+            return FolderType::ARTISTS;
+        case 3:
+            return FolderType::ALL_SONGS;
+        default:
+            return FolderType::ALBUMS;
+    }
 }

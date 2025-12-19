@@ -1,8 +1,27 @@
 #include "folder.h"
+#include "../../../components/button_manager/button_manager.h"
 
+void Folder::handleInput(ButtonManager& buttons) {
+    if (buttons.checkDownPressed()) {
+        Serial.println("Folder: Down button pressed - selecting next song");
+        selectNextSong();
+    }
+    
+    if (buttons.checkUpPressed()) {
+        Serial.println("Folder: Up button pressed - selecting previous song");
+        selectPreviousSong();
+    }
+}
 
 void Folder::drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height) {
     display.drawRect(x, y, width, height, SSD1306_WHITE);
+}
+
+SongInfo* Folder::getSelectedSong() {
+    if (songs != nullptr && selectedSongIndex >= 0 && selectedSongIndex < totalSongs) {
+        return &songs[selectedSongIndex];
+    }
+    return nullptr;
 }
 
 void Folder::selectNextSong() {
@@ -30,9 +49,22 @@ Folder::Folder(FolderType folderType, String folderName) :
     folderName(folderName), 
     totalSongs(0), 
     currentPage(0),
-    selectedSongIndex(0),
-    screenActive(false) {
+    selectedSongIndex(0) {
     songs = nullptr;
+}
+
+// Getters and Setters
+
+// Set folder data when navigating to this screen
+void Folder::setFolderData(FolderType type, String name) {
+    folderType = type;
+    folderName = name;
+}
+
+// Reset selection and page
+void Folder::resetSelection() {
+    selectedSongIndex = 0;
+    currentPage = 0;
 }
 
 SongInfo* Folder::loadSongData(int amount) {
@@ -106,6 +138,7 @@ void Folder::drawSong(Adafruit_SSD1306 &display, int songIndex, int &currentY, b
     currentY += DisplayConfig::LINE_HEIGHT;
 }
 
+// Display
 void Folder::display(Adafruit_SSD1306 &display) {
     display.clearDisplay();
 

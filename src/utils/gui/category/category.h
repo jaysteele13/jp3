@@ -18,6 +18,11 @@
 // Include small bitmaps
 #include "small_bitmaps.h"
 
+// Navigation system
+#include "../../navigation/screen_base.h"
+
+class ButtonManager;  // Forward declaration
+
 struct CategoryConfig {
     static const int LINE_HEIGHT = 12;
     static const int SCREEN_WIDTH = 128;
@@ -34,14 +39,27 @@ struct CategoryConfig {
 
 
 
-class Category {
+class Category : public ScreenBase {
     public:
         Category(CategoryType categoryType);
-        void display(Adafruit_SSD1306 &display);
-        CategoryInfo* loadCategoryData(int amount);
+        void display(Adafruit_SSD1306 &display) override;
+        void handleInput(ButtonManager& buttons) override;
+        CategoryInfo* loadCategoryData();
         void selectNextFolder();
         void selectPreviousFolder();
-        bool screenActive;
+        
+        // Set the category type when navigating to this screen
+        void setCategoryType(CategoryType type);
+        CategoryType getCategoryType() const { return categoryType; }
+        
+        // Get the currently selected category item
+        CategoryInfo* getSelectedCategory() const;
+        
+        // Reset selection and page
+        void resetSelection();
+        
+        ScreenType getScreenType() const override { return ScreenType::CATEGORY; }
+        String getScreenName() const override { return categoryName; }
 
     private:
         CategoryType categoryType;

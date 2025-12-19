@@ -14,7 +14,10 @@
 // Dummy data for albums
 #include "../../dummy_data/dummy.h"
 
+// Navigation system
+#include "../../navigation/screen_base.h"
 
+class ButtonManager;  // Forward declaration
 
 struct DisplayConfig {
     static const int LINE_HEIGHT = 12;
@@ -27,14 +30,26 @@ struct DisplayConfig {
     static const int INDICATOR_OFFSET = 8;
 };
 
-class Folder {
+class Folder : public ScreenBase {
     public:
         Folder(FolderType folderType, String folderName);
         SongInfo* loadSongData(int amount);
-        void display(Adafruit_SSD1306 &display);
+        void display(Adafruit_SSD1306 &display) override;
+        void handleInput(ButtonManager& buttons) override;
         void selectNextSong();
         void selectPreviousSong();
-        bool screenActive;
+        
+        // Set folder data when navigating to this screen
+        void setFolderData(FolderType type, String name);
+        
+        // Get the currently selected song
+        SongInfo* getSelectedSong();
+        
+        // Reset selection and page
+        void resetSelection();
+        
+        ScreenType getScreenType() const override { return ScreenType::FOLDER; }
+        String getScreenName() const override { return "Folder: " + folderName; }
 
     private:
         FolderType folderType;

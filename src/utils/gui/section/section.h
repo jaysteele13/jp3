@@ -10,13 +10,24 @@
 // Images for patterns
 #include "iconStack.h"
 
-class Section {
+// Navigation system
+#include "../../navigation/screen_base.h"
+
+class ButtonManager;  // Forward declaration
+
+class Section : public ScreenBase {
     public:
         Section();
-        void display(Adafruit_SSD1306 &display);
-        bool screenActive;
+        void display(Adafruit_SSD1306 &display) override;
+        void handleInput(ButtonManager& buttons) override;
         void nextPage();
         void previousPage();
+        
+        // Get the currently selected folder type
+        FolderType getSelectedFolderType() const;
+        
+        ScreenType getScreenType() const override { return ScreenType::SECTION; }
+        String getScreenName() const override { return "Section"; }
     private:
         int selectedFolderIndex;
         int currentPage;

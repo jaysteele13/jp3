@@ -1,25 +1,17 @@
 #include "gui_manager.h"
-#include "Adafruit_SSD1306.h"
-#include "Adafruit_GFX.h"
-#include <Wire.h>
-#include "../../utils/gui/song/song.h"
+
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-#define SCREEN_ADDRESS 0x3C   // Match the working example
+#define SCREEN_ADDRESS 0x3C
 
-// PINS
 #define SDA_PIN 21
 #define SCL_PIN 22
 
-GUIManager::GUIManager() : lastUpdateTime(0) {
+GUIManager::GUIManager() 
+    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    currentFolder = nullptr;
-    currentSection = nullptr;
-    currentSong = nullptr;
-    currentCategory = nullptr;
-    currentScreenType = ScreenType::FOLDER;
 }
 
 bool GUIManager::begin() {
@@ -27,17 +19,14 @@ bool GUIManager::begin() {
     delay(500);
 
     Wire.begin(/*SDA=*/SDA_PIN, /*SCL=*/SCL_PIN);
-    
-    // Initialise Button Manager
     buttonManager.begin();
 
     if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         Serial.println(F("SSD1306 allocation failed"));
         return false;
-    } else {
-        Serial.println(F("SSD1306 allocation succeeded"));
     }
-
+    
+    Serial.println(F("GUIManager initialized successfully"));
     return true;
 }
 
@@ -46,148 +35,192 @@ void GUIManager::clear() {
 }
 
 void GUIManager::update() {
-    // Adding in timing to add unpredictable delays and a controlled refresh rate
-    // also bad to keep cpu at 100% usage all the time
     unsigned long currentTime = millis();
     
     if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
-        handleInput();
-        updateDisplay();
+        // Handle input from current screen
+        ScreenBase* currentScreen = navigator.current();
+        if (currentScreen) {
+            currentScreen->handleInput(buttonManager);
+        }
+        
+        // Check for navigation button presses
+        handleForwardNavigation();
+        handleBackNavigation();
+        
+        // Update non-rendering state
+        navigator.update();
+        
+        // Render to display
+        navigator.render(*display);
+        
         lastUpdateTime = currentTime;
     }
 }
 
-void GUIManager::displaySong(Song& song) {
-            currentSong = &song;
-            currentScreenType = ScreenType::SONG;
-            song.display(*display);
-        }
-
-void GUIManager::displayFolder(Folder& folder) {
-            currentFolder = &folder;
-            folder.screenActive = true;
-            if (currentSection) currentSection->screenActive = false;
-            currentScreenType = ScreenType::FOLDER;
-            folder.display(*display);
-        }
-
-void GUIManager::displaySection(Section& section) {
-            currentSection = &section;
-            section.screenActive = true;
-            if (currentFolder) currentFolder->screenActive = false;
-            currentScreenType = ScreenType::SECTION;
-            section.display(*display);
-        }
-
-void GUIManager::displayCategory(Category& category) {
-    currentCategory = &category;
-    category.screenActive = true;
-    if (currentFolder) currentFolder->screenActive = false;
-    if (currentSection) currentSection->screenActive = false; // make a private function to hnadle this all these repeated if statements are brutal!
-    currentScreenType = ScreenType::CATEGORY; 
-    category.display(*display);
+NavResult GUIManager::pushScreen(ScreenBase* screen, TransitionType animation) {
+    if (!screen) {
+        Serial.println("ERROR: GUIManager::pushScreen - Null screen!");
+        return NavResult::NULL_SCREEN;
+    }
+    
+    NavResult result = navigator.push(screen, animation, 300);
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Navigation failed - ");
+        Serial.println(navResultToString(result));
+    }
+    
+    return result;
 }
 
-// Handles Button Input
-void GUIManager::handleInput() {
-    // Button Logic Per Screen
-    switch (currentScreenType) {
-        case ScreenType::FOLDER:
-            if (!currentFolder || !currentFolder->screenActive) {
-                return;
-            }
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Handling down button press - selecting next song");
-                currentFolder->selectNextSong();
-            }
-            
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Handling up button press - selecting previous song");
-                currentFolder->selectPreviousSong();
-            }
-            break;
-            
-        case ScreenType::SECTION:
-            if (!currentSection || !currentSection->screenActive) {
-                return;
-            }
-            
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Down button pressed - navigating to next screen");
-                currentSection->nextPage();
-            } 
-            
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Up button pressed - navigating to previous screen");
-                currentSection->previousPage();
-            } 
-            break;
+NavResult GUIManager::popScreen(TransitionType animation) {
+    NavResult result = navigator.pop(animation, 300);
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Pop failed - ");
+        Serial.println(navResultToString(result));
+    }
+    
+    return result;
+}
 
-        case ScreenType::CATEGORY:
-            if (!currentCategory || !currentCategory->screenActive) {
-                return;
-            }
+NavResult GUIManager::displayCategory(Category* category) {
+    return pushScreen(category, TransitionType::INSTANT);
+}
+
+NavResult GUIManager::displaySection(Section* section) {
+    return pushScreen(section, TransitionType::INSTANT);
+}
+
+NavResult GUIManager::displayFolder(Folder* folder) {
+    return pushScreen(folder, TransitionType::INSTANT);
+}
+
+NavResult GUIManager::displaySong(Song* song) {
+    return pushScreen(song, TransitionType::INSTANT);
+}
+
+bool GUIManager::canGoBack() const {
+    return navigator.canGoBack();
+}
+
+size_t GUIManager::getStackDepth() const {
+    return navigator.getStackDepth();
+}
+
+ScreenBase* GUIManager::getCurrentScreen() const {
+    return navigator.current();
+}
+
+ButtonManager& GUIManager::getButtonManager() {
+    return buttonManager;
+}
+
+
+
+void GUIManager::handleForwardNavigation() {
+    if (!buttonManager.checkSelectPressed()) {
+        return;
+    }
+    
+    ScreenBase* current = navigator.current();
+    if (!current) {
+        Serial.println("ERROR: No current screen!");
+        return;
+    }
+    
+    // Determine current screen type and navigate forward
+    ScreenType currentType = NavigationState::getScreenLevel(current);
+    ScreenType nextType = NavigationState::getNextLevel(currentType);
+    
+    if (currentType == nextType) {
+        // Already at leaf node (Song), can't go deeper
+        Serial.println("INFO: Already at deepest level (Song)");
+        return;
+    }
+    
+    // Navigate to appropriate next screen based on current type
+    NavResult result = NavResult::INVALID_TRANSITION;
+    
+    switch (currentType) {
+        case ScreenType::SECTION: {
+            // Section -> Category (HAS TO be folder type as we need to include All Songs which isn't a category type)
+            Section* section = static_cast<Section*>(current);
+            FolderType folderType = section->getSelectedFolderType();
             
-            if (buttonManager.checkDownPressed()) {
-                Serial.println("Down button pressed - navigating to next category");
-                currentCategory->selectNextFolder();
-            } 
+            auto category = ScreenFactory::createCategory(folderType);
+            Serial.print("NAV: Section -> Category (");
+            Serial.print((int)Utils::folderTypeToCategoryType(folderType));
+            Serial.println(")");
             
-            if (buttonManager.checkUpPressed()) {
-                Serial.println("Up button pressed - navigating to previous category");
-                currentCategory->selectPreviousFolder();
-            } 
+            result = pushScreen(category, TransitionType::INSTANT);
             break;
+        }
+            
+        case ScreenType::CATEGORY: {
+            // Category -> Folder
+            Category* category = static_cast<Category*>(current);
+            CategoryInfo* selected = category->getSelectedCategory();
+            
+            if (selected) {
+                CategoryType catType = category->getCategoryType();
+                FolderType folderType = Utils::categoryTypeToFolderType(catType);
+                
+                auto folder = ScreenFactory::createFolder(folderType, selected->categoryName);
+                Serial.print("NAV: Category -> Folder (");
+                Serial.print(selected->categoryName);
+                Serial.println(")");
+                
+                result = pushScreen(folder, TransitionType::INSTANT);
+            }
+            break;
+        }
+            
+        case ScreenType::FOLDER: {
+            // Folder -> Song
+            Folder* folder = static_cast<Folder*>(current);
+            SongInfo* selected = folder->getSelectedSong();
+            
+            if (selected) {
+                auto song = ScreenFactory::createSong(selected);
+                Serial.println("NAV: Folder -> Song");
+                result = pushScreen(song, TransitionType::INSTANT);
+            }
+            break;
+        }
             
         case ScreenType::SONG:
-            // Song input handling could be added here
+            // Can't go deeper
+            Serial.println("INFO: Already at Song (deepest level)");
+            result = NavResult::SUCCESS;
             break;
+            
+        default:
+            Serial.println("ERROR: Unknown screen type!");
+            result = NavResult::INVALID_TRANSITION;
+            break;
+    }
+    
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Forward navigation failed - ");
+        Serial.println(navResultToString(result));
     }
 }
 
-void GUIManager::updateDisplay() {
-    switch (currentScreenType) {
-        case ScreenType::FOLDER:
-            if (currentFolder) {
-                currentFolder->display(*display);
-            }
-            break;
-            
-        case ScreenType::SECTION:
-            if (currentSection) {
-                currentSection->display(*display);
-            }
-            break;
-            
-        case ScreenType::SONG:
-            if (currentSong) {
-                currentSong->display(*display);
-            }
-            break;
-        case ScreenType::CATEGORY:
-            if (currentCategory) {
-                currentCategory->display(*display);
-            }
-            break;
+void GUIManager::handleBackNavigation() {
+    if (!buttonManager.checkBackPressed()) {
+        return;
     }
-}
-
-// Navigation methods
-void GUIManager::navigateToSection() {
-    currentScreenType = ScreenType::SECTION;
-}
-
-void GUIManager::navigateToFolder(Folder& folder) {
-    currentFolder = &folder;
-    folder.screenActive = true;
-    if (currentSection) currentSection->screenActive = false;
-    currentScreenType = ScreenType::FOLDER;
-    folder.display(*display);
-}
-
-void GUIManager::navigateToSong(Song& song) {
-    currentSong = &song;
-    currentScreenType = ScreenType::SONG;
-    song.display(*display);
+    
+    if (!canGoBack()) {
+        Serial.println("INFO: Already at root screen");
+        return;
+    }
+    
+    NavResult result = popScreen();
+    if (result != NavResult::SUCCESS) {
+        Serial.print("ERROR: Back navigation failed - ");
+        Serial.println(navResultToString(result));
+    }
 }

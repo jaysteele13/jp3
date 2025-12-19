@@ -49,7 +49,7 @@ When Connected to Mb102. The voltage is less than either 5v or 3.3v So this can 
 Buttons:
 - GPIO25 (up)
 - GPIO26 (down)
-- GPIO27
-- GPIO32
+- GPIO27 (select)
+- GPIO32 (back)
 - GPIO33
 

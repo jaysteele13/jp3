@@ -2,20 +2,20 @@
 #include "components/gui_manager/gui_manager.h"
 
 GUIManager gui;
-Song testSong("Still Crazy After all of these Years", 240, "Still Crazy After all of these Years", "Paul Simon", "");
-Folder testFolder(FolderType::ALBUMS, "Abbey Road"); // Testing: Templates-> Mathrock Playlist // The Beatles // Abbey Road
 Section section;
-Category category(CategoryType::PLAYLISTS);
+
 
 void setup() {
   gui.begin();
-  // Set initial Screen
-  // gui.displaySong(testSong);
-  // gui.displayFolder(testFolder);
-  // gui.displaySection(section);
-  gui.displayCategory(category);  
+  
+  // Initialize with section screen (new root)
+  NavResult result = gui.displaySection(&section);
+  if (result != NavResult::SUCCESS) {
+    Serial.print("ERROR: Failed to initialize navigation - ");
+    Serial.println(navResultToString(result));
+  }
 }
 
 void loop() {
-  gui.update();  // Non-blocking update with built-in timing
+  gui.update();  // Handles all input, navigation, and rendering
 }
