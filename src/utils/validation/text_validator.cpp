@@ -16,14 +16,11 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
         return;
     }
     
-    // True circular scrolling - text wraps from right to left continuously
+    // True infinite circular scrolling - text wraps from right to left continuously without reset
     unsigned long currentTime = millis();
     if (currentTime - lastScrollTime[lineId] > SCROLL_SPEED) {
         scrollOffsets[lineId]++;
-        // Loop after full text width plus gap for seamless circular effect
-        if (scrollOffsets[lineId] > textWidth + SCROLL_LOOP_GAP) {
-            scrollOffsets[lineId] = 0; // Reset to start
-        }
+        // No reset - let offset grow infinitely, modulo operations will handle circular behavior
         lastScrollTime[lineId] = currentTime;
     }
     
@@ -34,9 +31,13 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
     int safeMaxChars = (maxWidth / charWidth) + 1; // +1 for safety margin
     int scrollOffset = scrollOffsets[lineId];
     
+    // Use cycle position for consistent infinite loop
+    int cyclePosition = scrollOffset % (textWidth + SCROLL_LOOP_GAP);
+    int effectiveScrollOffset = cyclePosition;
+    
     // Display first part (the tail of the text)
-    if (scrollOffset < textWidth) {
-        int firstStartChar = scrollOffset / charWidth;
+    if (effectiveScrollOffset < textWidth) {
+        int firstStartChar = effectiveScrollOffset / charWidth;
         int firstEndChar = firstStartChar + safeMaxChars;
         
         // Security: Boundary checks
@@ -49,7 +50,7 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
         
         if (firstStartChar < text.length() && firstEndChar > firstStartChar) {
             String firstPart = text.substring(firstStartChar, firstEndChar);
-            int firstCursorX = x - (scrollOffset % charWidth);
+            int firstCursorX = x - (effectiveScrollOffset % charWidth);
             
             // Security: Ensure cursor doesn't go negative or beyond bounds
             if (firstCursorX >= x - charWidth && firstCursorX < maxDisplayX) {
@@ -74,31 +75,41 @@ void TextValidator::displayScrollingText(Adafruit_SSD1306 &display, String text,
     int scrolledOffWidth = scrollOffset;
     int visibleFirstWidth = (textWidth > scrolledOffWidth) ? (textWidth - scrolledOffWidth) : 0;
     
-    // Security: Only show second part if enough space with proper gap
-    if (scrolledOffWidth > SCROLL_LOOP_GAP && visibleFirstWidth > 0) {
-        int availableSpace = maxWidth - visibleFirstWidth - SCROLL_LOOP_GAP;
+    // Always show second part for continuous infinite loop
+    int effectiveScrolledOffWidth = effectiveScrollOffset;
+    int effectiveVisibleFirstWidth = (textWidth > effectiveScrolledOffWidth) ? (textWidth - effectiveScrolledOffWidth) : 0;
+    
+    if (effectiveScrolledOffWidth > SCROLL_LOOP_GAP) {
+        int availableSpace = maxWidth - effectiveVisibleFirstWidth - SCROLL_LOOP_GAP;
         
-        if (availableSpace > charWidth) { // Need at least one character space
-            int secondCursorX = x + visibleFirstWidth + SCROLL_LOOP_GAP;
+        if (availableSpace > 0) { // Always try to show second part, even if small
+            int secondCursorX = x + effectiveVisibleFirstWidth + SCROLL_LOOP_GAP;
             
-            // Security: Ensure second part starts within display bounds
-            if (secondCursorX < maxDisplayX - charWidth) {
-                int maxSecondChars = availableSpace / charWidth;
-                int secondEndChar = maxSecondChars;
+            // Show as much as can fit in the remaining space
+            int maxSecondChars = availableSpace / charWidth;
+            if (maxSecondChars < 1) maxSecondChars = 1; // Show at least one character
+            int secondEndChar = maxSecondChars;
+            
+            // Security: Boundary checks
+            if (secondEndChar > text.length()) {
+                secondEndChar = text.length();
+            }
+            
+            if (secondEndChar > 0) {
+                String secondPart = text.substring(0, secondEndChar);
                 
-                // Security: Boundary checks
-                if (secondEndChar > text.length()) {
-                    secondEndChar = text.length();
-                }
-                
-                if (secondEndChar > 0) {
-                    String secondPart = text.substring(0, secondEndChar);
-                    
-                    // Security: Final boundary check before display
-                    int secondPartWidth = secondPart.length() * charWidth;
-                    if (secondCursorX + secondPartWidth <= maxDisplayX) {
+                // Security: Final boundary check before display
+                int secondPartWidth = secondPart.length() * charWidth;
+                if (secondCursorX + secondPartWidth <= maxDisplayX) {
+                    display.setCursor(secondCursorX, y);
+                    display.print(secondPart);
+                } else {
+                    // Truncate to fit exactly
+                    int fittingChars = (maxDisplayX - secondCursorX) / charWidth;
+                    if (fittingChars > 0 && fittingChars <= secondPart.length()) {
+                        String truncatedPart = secondPart.substring(0, fittingChars);
                         display.setCursor(secondCursorX, y);
-                        display.print(secondPart);
+                        display.print(truncatedPart);
                     }
                 }
             }
