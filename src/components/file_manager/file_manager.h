@@ -13,14 +13,10 @@
 // Must Create a test env where for now we try to read a file name.
 
 // Must make the base class with init and ReadFile, and List Root Path
-
-#ifndef GUI_MANAGER_H
-#define GUI_MANAGER_H
-
 #include "Arduino.h"
 #include <Wire.h>
 
-// Wile have to pass MicroSD CArd Read and Add plenty of logs
+// Wile have to pass MicroSD Card Read and Add plenty of logs
 
 class FileManager {
     private:
