@@ -35,6 +35,10 @@ void FileManager::init() {
     Serial.printf("SD Card Size: %lluMB\n", cardSize);
 
     listDir(SD, "/", 0);
+    listDir(SD, "/jp3", 0);
+    listDir(SD, "/jp3/metadata", 0);
+    
+
 }
 
 void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
