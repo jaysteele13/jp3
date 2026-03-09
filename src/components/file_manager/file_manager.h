@@ -18,6 +18,9 @@
 #include "SD.h"
 #include "FS.h"
 
+// Include custom Libraries for File Navigation
+#include "utils/enums/paths.h"
+
 // Wile have to pass MicroSD Card Read and Add plenty of logs
 
 class FileManager {
@@ -25,6 +28,8 @@ class FileManager {
         // str* currentPath = nullptr; // Probably do not need
         // Probably will have to pass active instance of the microSD card Reader
         SPIClass spi;
+        bool validateSDCard();
+
         
     public:
         FileManager();

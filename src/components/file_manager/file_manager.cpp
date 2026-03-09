@@ -34,10 +34,14 @@ void FileManager::init() {
     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
     Serial.printf("SD Card Size: %lluMB\n", cardSize);
 
-    listDir(SD, "/", 0);
-    listDir(SD, "/jp3", 0);
-    listDir(SD, "/jp3/metadata", 0);
-    
+    // Testing below
+    validateSDCard();
+
+    // Serial.println("Testing listDir function with paths from enum");
+
+    // listDir(SD, get_path(Paths::BASE_PATH), 0);
+    // listDir(SD, get_path(Paths::MUSIC_PATH), 0);
+    // listDir(SD, get_path(Paths::METADATA_PATH), 0);
 
 }
 
@@ -72,7 +76,45 @@ void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
 }
 }
 
+bool FileManager::validateSDCard() {
+    
+    // Once initialised filePath should have a global variable called basePAth. This will avoid having ot pass this. basePath once found should 
+    // always be constant. Should be hardcoded as the jp3 folder in the microSD card will always be the same.
+    // base path should be "/"
 
+    // now have Paths to look through base path.
+
+    // Perhaps fucntionise below
+    // Check if the base path exists
+    if (!SD.exists(get_path(Paths::BASE_PATH))) {
+        Serial.println("Base path does not exist");
+        return false;
+    }
+
+    // check if metadata exists
+    if (!SD.exists(get_path(Paths::METADATA_PATH))) {
+        Serial.println("Metadata file does not exist");
+        return false;
+    }
+
+    // check if music path exists
+    if (!SD.exists(get_path(Paths::MUSIC_PATH))) {
+        Serial.println("Music path does not exist");
+        return false;
+    }
+
+    // check if playlists path exists
+    if (!SD.exists(get_path(Paths::PLAYLISTS_PATH))) {
+        Serial.println("Playlists path does not exist");
+        return false;
+    }
+
+    // We now should check individually if the library.bin exists and metadata. Likewise for playlists Currenly this can be empty)
+
+
+    Serial.println("All paths are valid");
+    return true;
+}
 
 // These should really be pointers - will pseudo once I understand microSD library
 String FileManager::GetBasePath() {
