@@ -113,6 +113,23 @@ bool FileManager::validateSDCard() {
 
 
     Serial.println("All paths are valid");
+
+    // We should now validate the library.bin file. In order to do this we must make a seperate function that can read the first song.
+    // if this fails then the library.bin file is not valid. Also check the size of the library bin file and make sure it is not empty
+
+    File metadataFile = SD.open(get_path(Paths::METADATA_PATH));
+    if (!metadataFile) {
+        Serial.println("Failed to open metadata file");
+        return false;
+    }
+    if (metadataFile.size() == 0) {
+        Serial.println("Metadata file is empty");
+        return false;
+    }
+
+    // once this is read we should pass this file into the metadataManager
+    metadataManager.readFirstSong();
+
     return true;
 }
 

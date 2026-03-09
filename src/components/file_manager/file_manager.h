@@ -20,6 +20,7 @@
 
 // Include custom Libraries for File Navigation
 #include "utils/enums/paths.h"
+#include "components/metadata_manager/metadata_manager.h"
 
 // Wile have to pass MicroSD Card Read and Add plenty of logs
 
@@ -29,6 +30,7 @@ class FileManager {
         // Probably will have to pass active instance of the microSD card Reader
         SPIClass spi;
         bool validateSDCard();
+        MetadataManager metadataManager; // This will be used to validate the library.bin file and read the first song for testing purposes. In the future this will be used to read all songs and create a library in memory.
 
         
     public:
