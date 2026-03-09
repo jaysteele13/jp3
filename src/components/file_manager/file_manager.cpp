@@ -128,7 +128,7 @@ bool FileManager::validateSDCard() {
     }
 
     // once this is read we should pass this file into the metadataManager
-    metadataManager.readFirstSong();
+    metadataManager.readFirstNSongs(5);
 
     return true;
 }
