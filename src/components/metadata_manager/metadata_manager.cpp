@@ -33,7 +33,7 @@ CategoryInfo MetadataManager::getArtistDataByID(File& file, uint32_t artist_id) 
     }
 
     info.categoryName = readString(file, string_table_offset, artist_string_id);
-    Serial.printf("Artist name: %s\n", info.categoryName.c_str());
+    
 
     return info;
 }
@@ -41,6 +41,7 @@ CategoryInfo MetadataManager::getArtistDataByID(File& file, uint32_t artist_id) 
 CategoryInfo MetadataManager::getAlbumDataByID(File& file, uint32_t album_id) {
     CategoryInfo info = {};
 
+    // Could this be minimised?
     uint32_t string_table_offset = readTableOffset(file, Offsets::STRING_TABLE_OFFSET);
     uint32_t album_table_offset = readTableOffset(file, Offsets::ALBUM_TABLE_OFFSET);
 
@@ -239,7 +240,12 @@ void MetadataManager::readFirstNSongs(uint8_t n) {
         album_id |= ((uint32_t)file.read() << 8);
         album_id |= ((uint32_t)file.read() << 16);
         album_id |= ((uint32_t)file.read() << 24);
-        
+
+        // Temporary bad and dirty
+        pos_before_artist = file.position();
+        CategoryInfo album_info = getAlbumDataByID(file, album_id);
+        file.seek(pos_before_artist);
+
         uint32_t path_string_id = file.read();
 
         // Resolve strings
