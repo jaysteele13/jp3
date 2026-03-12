@@ -1,11 +1,49 @@
 #include "metadata_manager.h"
 
+uint32_t MetadataManager::string_offsets[MAX_STRINGS];
+bool MetadataManager::offset_index_valid = false;
+
 MetadataManager::MetadataManager() {
     // Constructor implementation (if needed)
 }
 
 void MetadataManager::init() {
-    // Initialization code (if needed)
+    File file = SD.open(get_path(Paths::METADATA_PATH));
+    
+    if (!file) {
+        Serial.println("Failed to open metadata file during init");
+        return;
+    }
+
+    uint32_t string_table_offset = readTableOffset(file, Offsets::STRING_TABLE_OFFSET);
+    buildStringOffsetIndex(file, string_table_offset);
+    
+    file.close();
+}
+
+void MetadataManager::buildStringOffsetIndex(File& file, uint32_t string_table_offset) {
+    file.seek(string_table_offset);
+    
+    uint32_t current_offset = string_table_offset;
+    uint32_t index = 0;
+    
+    while (index < MAX_STRINGS) {
+        string_offsets[index] = current_offset;
+        
+        uint16_t string_length = file.read();
+        string_length |= ((uint16_t)file.read() << 8);
+        
+        if (string_length == 0) {
+            break;
+        }
+        
+        current_offset += 2 + string_length;
+        file.seek(current_offset);
+        index++;
+    }
+    
+    offset_index_valid = true;
+    Serial.printf("Built string offset index with %u entries\n", index);
 }
 
 
@@ -70,27 +108,24 @@ CategoryInfo MetadataManager::getAlbumDataByID(File& file, uint32_t album_id) {
 
 
 String MetadataManager::readString(File& file, uint32_t string_table_offset, uint32_t string_id) {
-    file.seek(string_table_offset);
-    
-    for (uint32_t i = 0; i <= string_id; i++) {
-        uint16_t string_length = file.read();
-        string_length |= ((uint16_t)file.read() << 8);
-        
-        if (i == string_id) {
-            char* buffer = new char[string_length + 1];
-            file.read((uint8_t*)buffer, string_length);
-            buffer[string_length] = '\0';
-            String result = String(buffer);
-            delete[] buffer;
-            return result;
-        } else {
-            file.seek(file.position() + string_length);
-        }
+    if (string_id >= MAX_STRINGS) {
+        Serial.printf("Error: string_id %u exceeds MAX_STRINGS %d\n", string_id, MAX_STRINGS);
+        return "";
     }
     
-    return "";
+    file.seek(string_offsets[string_id]);
+    
+    uint16_t string_length = file.read();
+    string_length |= ((uint16_t)file.read() << 8);
+    
+    char* buffer = new char[string_length + 1];
+    file.read((uint8_t*)buffer, string_length);
+    buffer[string_length] = '\0';
+    String result = String(buffer);
+    delete[] buffer;
+    return result;
 }
-
+// Retrieves string id of entry in table
 int MetadataManager::readStringId(File& file, Offsets table_type, uint32_t entry_id) {
     uint8_t entry_size;
     if (table_type == Offsets::ARTIST_TABLE_OFFSET) {

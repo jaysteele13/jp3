@@ -26,19 +26,16 @@
 
 class FileManager {
     private:
-        // str* currentPath = nullptr; // Probably do not need
-        // Probably will have to pass active instance of the microSD card Reader
         SPIClass spi;
-        bool validateSDCard();
-        MetadataManager metadataManager; // This will be used to validate the library.bin file and read the first song for testing purposes. In the future this will be used to read all songs and create a library in memory.
-
+        bool validateSDCard(MetadataManager& metadataManager);
         
     public:
         FileManager();
-        void init();
+        void initSD();  // Initialize SD card only - call first
+        void init(MetadataManager& metadataManager);  // Full init with validation
         String GetBasePath();
         void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
-        String ReadFile(String* basePath); // is String efficient? Plan with AI Have very good Prompt.
+        String ReadFile(String* basePath);
         
     };
 

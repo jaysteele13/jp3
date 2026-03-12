@@ -2,30 +2,29 @@
 
 
 FileManager::FileManager() : spi(VSPI) {}
-  
-void FileManager::init() {
-    // This should be defined else where just for testing
+
+void FileManager::initSD() {
     Serial.begin(115200);
     delay(500);
     spi.begin(CLK_PIN, MISO_PIN, MOSI_PIN, CS_PIN);
-    // init MicroSD 
-    if (!SD.begin(CS_PIN,spi,4000000)) {
-    Serial.println("Card Mount Failed");
-    return;
-  }
+    
+    if (!SD.begin(CS_PIN, spi, 4000000)) {
+        Serial.println("Card Mount Failed");
+        return;
+    }
+    
     uint8_t cardType = SD.cardType();
-
-    if(cardType == CARD_NONE){
+    if (cardType == CARD_NONE) {
         Serial.println("No SD card attached");
         return;
     }
 
     Serial.print("SD Card Type: ");
-    if(cardType == CARD_MMC){
+    if (cardType == CARD_MMC) {
         Serial.println("MMC");
-    } else if(cardType == CARD_SD){
+    } else if (cardType == CARD_SD) {
         Serial.println("SDSC");
-    } else if(cardType == CARD_SDHC){
+    } else if (cardType == CARD_SDHC) {
         Serial.println("SDHC");
     } else {
         Serial.println("UNKNOWN");
@@ -33,16 +32,10 @@ void FileManager::init() {
 
     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
     Serial.printf("SD Card Size: %lluMB\n", cardSize);
-
-    // Testing below
-    validateSDCard();
-
-    // Serial.println("Testing listDir function with paths from enum");
-
-    // listDir(SD, get_path(Paths::BASE_PATH), 0);
-    // listDir(SD, get_path(Paths::MUSIC_PATH), 0);
-    // listDir(SD, get_path(Paths::METADATA_PATH), 0);
-
+}
+  
+void FileManager::init(MetadataManager& metadataManager) {
+    validateSDCard(metadataManager);
 }
 
 void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
@@ -76,7 +69,7 @@ void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
 }
 }
 
-bool FileManager::validateSDCard() {
+bool FileManager::validateSDCard(MetadataManager& metadataManager) {
     
     // Once initialised filePath should have a global variable called basePAth. This will avoid having ot pass this. basePath once found should 
     // always be constant. Should be hardcoded as the jp3 folder in the microSD card will always be the same.
