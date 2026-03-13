@@ -11,9 +11,17 @@ MetadataManager metadataManager;
 
 void setup() {
   gui.begin();
-  fileManager.initSD();           // 1. Initialize SD card first
-  metadataManager.init();          // 2. Build string offset index (uses SD)
-  fileManager.init(metadataManager);  // 3. Validate SD + read test songs
+  fileManager.initSD();
+  
+  if (!fileManager.validate()) {
+    Serial.println("ERROR: SD card validation failed");
+    return;
+  }
+  
+  metadataManager.setFileManager(&fileManager);
+  metadataManager.init();
+  
+  metadataManager.readFirstNSongs(5);
   
   // Initialize with section screen (new root)
   NavResult result = gui.displaySection(&section);

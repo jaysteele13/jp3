@@ -20,22 +20,20 @@
 
 // Include custom Libraries for File Navigation
 #include "utils/enums/paths.h"
-#include "components/metadata_manager/metadata_manager.h"
-
-// Wile have to pass MicroSD Card Read and Add plenty of logs
 
 class FileManager {
     private:
         SPIClass spi;
-        bool validateSDCard(MetadataManager& metadataManager);
+        bool validatePaths();
         
     public:
         FileManager();
-        void initSD();  // Initialize SD card only - call first
-        void init(MetadataManager& metadataManager);  // Full init with validation
+        void initSD();
+        bool validate();
         String GetBasePath();
         void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
         String ReadFile(String* basePath);
+        File openMetadataFile();
         
     };
 

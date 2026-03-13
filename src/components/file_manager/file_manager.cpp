@@ -33,10 +33,6 @@ void FileManager::initSD() {
     uint64_t cardSize = SD.cardSize() / (1024 * 1024);
     Serial.printf("SD Card Size: %lluMB\n", cardSize);
 }
-  
-void FileManager::init(MetadataManager& metadataManager) {
-    validateSDCard(metadataManager);
-}
 
 void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
   Serial.printf("Listing directory: %s\n", dirname);
@@ -48,6 +44,7 @@ void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
   }
   if(!root.isDirectory()){
     Serial.println("Not a directory");
+    root.close();
     return;
   }
 
@@ -56,6 +53,7 @@ void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
     if(file.isDirectory()){
       Serial.print("  DIR : ");
       Serial.println(file.name());
+      file.close();
       if(levels){
         listDir(fs, file.name(), levels -1);
       }
@@ -64,18 +62,18 @@ void FileManager::listDir(fs::FS &fs, const char * dirname, uint8_t levels) {
       Serial.print(file.name());
       Serial.print("  SIZE: ");
       Serial.println(file.size());
+      file.close();
     }
      file = root.openNextFile();
-}
+  }
+  root.close();
 }
 
-bool FileManager::validateSDCard(MetadataManager& metadataManager) {
+bool FileManager::validate() {
     
     // Once initialised filePath should have a global variable called basePAth. This will avoid having ot pass this. basePath once found should 
     // always be constant. Should be hardcoded as the jp3 folder in the microSD card will always be the same.
     // base path should be "/"
-
-    // now have Paths to look through base path.
 
     // Perhaps fucntionise below
     // Check if the base path exists
@@ -117,14 +115,19 @@ bool FileManager::validateSDCard(MetadataManager& metadataManager) {
     }
     if (metadataFile.size() == 0) {
         Serial.println("Metadata file is empty");
+        metadataFile.close();
         return false;
     }
 
-    // once this is read we should pass this file into the metadataManager
-    metadataManager.readFirstNSongs(5);
-
+    metadataFile.close();
+    Serial.println("Metadata file validation passed");
     return true;
 }
+
+File FileManager::openMetadataFile() {
+    return SD.open(get_path(Paths::METADATA_PATH));
+}
+
 
 // These should really be pointers - will pseudo once I understand microSD library
 String FileManager::GetBasePath() {

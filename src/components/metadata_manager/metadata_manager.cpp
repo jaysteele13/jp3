@@ -1,24 +1,32 @@
 #include "metadata_manager.h"
+#include "../file_manager/file_manager.h"
 
 uint32_t MetadataManager::string_offsets[MAX_STRINGS];
 bool MetadataManager::offset_index_valid = false;
 
-MetadataManager::MetadataManager() {
-    // Constructor implementation (if needed)
+MetadataManager::MetadataManager() : fileManager(nullptr) {
+}
+
+void MetadataManager::setFileManager(FileManager* fm) {
+    fileManager = fm;
 }
 
 void MetadataManager::init() {
-    File file = SD.open(get_path(Paths::METADATA_PATH));
+    if (!fileManager) {
+        Serial.println("ERROR: FileManager not set for MetadataManager");
+        return;
+    }
     
-    if (!file) {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
         Serial.println("Failed to open metadata file during init");
         return;
     }
 
-    uint32_t string_table_offset = readTableOffset(file, Offsets::STRING_TABLE_OFFSET);
-    buildStringOffsetIndex(file, string_table_offset);
+    uint32_t string_table_offset = readTableOffset(metadataFile, Offsets::STRING_TABLE_OFFSET);
+    buildStringOffsetIndex(metadataFile, string_table_offset);
     
-    file.close();
+    metadataFile.close();
 }
 
 void MetadataManager::buildStringOffsetIndex(File& file, uint32_t string_table_offset) {
@@ -57,55 +65,70 @@ uint32_t MetadataManager::readTableOffset(File& file, Offsets offset) {
     return table_offset;
 }
 
-CategoryInfo MetadataManager::getArtistDataByID(File& file, uint32_t artist_id) {
+CategoryInfo MetadataManager::getArtistDataByID(uint32_t artist_id) {
     CategoryInfo info = {};
+    
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("Failed to open metadata file in getArtistDataByID");
+        return info;
+    }
 
-    uint32_t string_table_offset = readTableOffset(file, Offsets::STRING_TABLE_OFFSET);
+    uint32_t string_table_offset = readTableOffset(metadataFile, Offsets::STRING_TABLE_OFFSET);
 
     Serial.printf("Getting artist data for artist_id: %u\n", artist_id);
 
-    int artist_string_id = readStringId(file, Offsets::ARTIST_TABLE_OFFSET, artist_id);
+    int artist_string_id = readStringId(metadataFile, Offsets::ARTIST_TABLE_OFFSET, artist_id);
     if (artist_string_id < 0) {
         Serial.printf("Failed to get artist string ID for artist_id: %u\n", artist_id);
+        metadataFile.close();
         return info;
     }
 
     char buffer[256];
-    readString(file, artist_string_id, buffer, sizeof(buffer));
+    readString(metadataFile, artist_string_id, buffer, sizeof(buffer));
     info.categoryName = String(buffer);
     
-
+    metadataFile.close();
     return info;
 }
 
-CategoryInfo MetadataManager::getAlbumDataByID(File& file, uint32_t album_id) {
+CategoryInfo MetadataManager::getAlbumDataByID(uint32_t album_id) {
     CategoryInfo info = {};
 
-    // Could this be minimised?
-    uint32_t string_table_offset = readTableOffset(file, Offsets::STRING_TABLE_OFFSET);
-    uint32_t album_table_offset = readTableOffset(file, Offsets::ALBUM_TABLE_OFFSET);
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("Failed to open metadata file in getAlbumDataByID");
+        return info;
+    }
 
-    int album_string_id = readStringId(file, Offsets::ALBUM_TABLE_OFFSET, album_id);
+    // Could this be minimised?
+    uint32_t string_table_offset = readTableOffset(metadataFile, Offsets::STRING_TABLE_OFFSET);
+    uint32_t album_table_offset = readTableOffset(metadataFile, Offsets::ALBUM_TABLE_OFFSET);
+
+    int album_string_id = readStringId(metadataFile, Offsets::ALBUM_TABLE_OFFSET, album_id);
     if (album_string_id < 0) {
         Serial.printf("Failed to get album string ID for album_id: %u\n", album_id);
+        metadataFile.close();
         return info;
     }
 
     char buffer[256];
-    readString(file, album_string_id, buffer, sizeof(buffer));
+    readString(metadataFile, album_string_id, buffer, sizeof(buffer));
     info.categoryName = String(buffer);
     Serial.printf("Album name: %s\n", info.categoryName.c_str());
 
-    int artist_id = getArtistIdFromAlbum(file, album_table_offset, album_id);
+    int artist_id = getArtistIdFromAlbum(metadataFile, album_table_offset, album_id);
     if (artist_id >= 0) {
-        int artist_string_id = readStringId(file, Offsets::ARTIST_TABLE_OFFSET, artist_id);
+        int artist_string_id = readStringId(metadataFile, Offsets::ARTIST_TABLE_OFFSET, artist_id);
         if (artist_string_id >= 0) {
-            readString(file, artist_string_id, buffer, sizeof(buffer));
+            readString(metadataFile, artist_string_id, buffer, sizeof(buffer));
             info.artistName = String(buffer);
             Serial.printf("Artist name from album: %s\n", info.artistName.c_str());
         }
     }
 
+    metadataFile.close();
     return info;
 }
 
@@ -156,6 +179,19 @@ int MetadataManager::readStringId(File& file, Offsets table_type, uint32_t entry
     return static_cast<int>(string_id);
 }
 
+int MetadataManager::readStringId(Offsets table_type, uint32_t entry_id) {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("Failed to open metadata file in readStringId");
+        return -1;
+    }
+    
+    int result = readStringId(metadataFile, table_type, entry_id);
+    
+    metadataFile.close();
+    return result;
+}
+
 int MetadataManager::getArtistIdFromAlbum(File& file, uint32_t album_table_offset, uint32_t album_id) {
     uint32_t artist_id_offset = album_table_offset + (album_id * 16) + 0x04;
     file.seek(artist_id_offset);
@@ -192,9 +228,9 @@ we will be using the 0x14 as string_table_offset alot, likewise for the others
 
 */
 void MetadataManager::readFirstNSongs(uint8_t n) {
-    File file = SD.open(get_path(Paths::METADATA_PATH));
+    File metadataFile = fileManager->openMetadataFile();
     
-    if (!file) {
+    if (!metadataFile) {
         Serial.println("Failed to open metadata file");
         return;
     }
@@ -202,28 +238,23 @@ void MetadataManager::readFirstNSongs(uint8_t n) {
     Serial.println("Reading songs from metadata file...");
 
     // Step 1: Read Header
-    // Offset 0x08-0x0B: song_count (u32)
-    // Offset 0x14-0x17: string_table_offset (u32)
-    // Offset 0x20-0x23: song_table_offset (u32)
-    
-    // Address in Bin to seek out the Song Count.
-    file.seek(0x08);
-    uint32_t song_count = file.read();
-    song_count |= ((uint32_t)file.read() << 8);
-    song_count |= ((uint32_t)file.read() << 16);
-    song_count |= ((uint32_t)file.read() << 24);
+    metadataFile.seek(0x08);
+    uint32_t song_count = metadataFile.read();
+    song_count |= ((uint32_t)metadataFile.read() << 8);
+    song_count |= ((uint32_t)metadataFile.read() << 16);
+    song_count |= ((uint32_t)metadataFile.read() << 24);
 
-    file.seek(get_offset(Offsets::STRING_TABLE_OFFSET)); // Seeks out the String Table Offset in the Bin.
-    uint32_t string_table_offset = file.read();
-    string_table_offset |= ((uint32_t)file.read() << 8);
-    string_table_offset |= ((uint32_t)file.read() << 16);
-    string_table_offset |= ((uint32_t)file.read() << 24);
+    metadataFile.seek(get_offset(Offsets::STRING_TABLE_OFFSET));
+    uint32_t string_table_offset = metadataFile.read();
+    string_table_offset |= ((uint32_t)metadataFile.read() << 8);
+    string_table_offset |= ((uint32_t)metadataFile.read() << 16);
+    string_table_offset |= ((uint32_t)metadataFile.read() << 24);
     
-    file.seek(get_offset(Offsets::SONG_TABLE_OFFSET)); // Seeks out the Song Table offset in the Bin.
-    uint32_t song_table_offset = file.read();
-    song_table_offset |= ((uint32_t)file.read() << 8);
-    song_table_offset |= ((uint32_t)file.read() << 16);
-    song_table_offset |= ((uint32_t)file.read() << 24);
+    metadataFile.seek(get_offset(Offsets::SONG_TABLE_OFFSET));
+    uint32_t song_table_offset = metadataFile.read();
+    song_table_offset |= ((uint32_t)metadataFile.read() << 8);
+    song_table_offset |= ((uint32_t)metadataFile.read() << 16);
+    song_table_offset |= ((uint32_t)metadataFile.read() << 24);
 
     Serial.printf("Total songs in library: %u\n", song_count);
     Serial.printf("String table offset: %u\n", string_table_offset);
@@ -237,60 +268,43 @@ void MetadataManager::readFirstNSongs(uint8_t n) {
     while (songs_found < n && entry_index < song_count) {
         uint32_t entry_offset = song_table_offset + (entry_index * 24);
         
-        // Read flag first (offset 0x14 within song entry)
-        file.seek(entry_offset + 0x14);
-        uint8_t flags = file.read();
+        metadataFile.seek(entry_offset + 0x14);
+        uint8_t flags = metadataFile.read();
         
-        // Check if active (0x00) or deleted (0x01)
         if (flags == 0x01) {
             Serial.printf("[%u] DELETED - skipping\n", entry_index);
             entry_index++;
             continue;
         }
         
-        // Read full song entry (24 bytes)
-        // Offset 0x00-0x03: title_string_id (u32)
-        // Offset 0x04-0x07: artist_id (u32)
-        // Offset 0x08-0x0B: album_id (u32)
-        // Offset 0x0C-0x0F: path_string_id (u32)
-        // Offset 0x10-0x11: track_number (u16)
-        // Offset 0x12-0x13: duration_sec (u16)
-        // Offset 0x14: flags (u8)
+        metadataFile.seek(entry_offset);
         
-        file.seek(entry_offset);
+        uint32_t title_string_id = metadataFile.read();
+        title_string_id |= ((uint32_t)metadataFile.read() << 8);
+        title_string_id |= ((uint32_t)metadataFile.read() << 16);
+        title_string_id |= ((uint32_t)metadataFile.read() << 24);
         
-        uint32_t title_string_id = file.read();
-        title_string_id |= ((uint32_t)file.read() << 8);
-        title_string_id |= ((uint32_t)file.read() << 16);
-        title_string_id |= ((uint32_t)file.read() << 24);
-        
-        uint32_t artist_id = file.read();
-        artist_id |= ((uint32_t)file.read() << 8);
-        artist_id |= ((uint32_t)file.read() << 16);
-        artist_id |= ((uint32_t)file.read() << 24);
+        uint32_t artist_id = metadataFile.read();
+        artist_id |= ((uint32_t)metadataFile.read() << 8);
+        artist_id |= ((uint32_t)metadataFile.read() << 16);
+        artist_id |= ((uint32_t)metadataFile.read() << 24);
 
-        uint32_t pos_before_artist = file.position();
-        CategoryInfo artist_info = getArtistDataByID(file, artist_id);
-        file.seek(pos_before_artist);
+        CategoryInfo artist_info = getArtistDataByID(artist_id);
         Serial.printf("Artist name: %s\n", artist_info.categoryName.c_str());
         
-        uint32_t album_id = file.read();
-        album_id |= ((uint32_t)file.read() << 8);
-        album_id |= ((uint32_t)file.read() << 16);
-        album_id |= ((uint32_t)file.read() << 24);
+        uint32_t album_id = metadataFile.read();
+        album_id |= ((uint32_t)metadataFile.read() << 8);
+        album_id |= ((uint32_t)metadataFile.read() << 16);
+        album_id |= ((uint32_t)metadataFile.read() << 24);
 
-        // Temporary bad and dirty
-        pos_before_artist = file.position();
-        CategoryInfo album_info = getAlbumDataByID(file, album_id);
-        file.seek(pos_before_artist);
+        CategoryInfo album_info = getAlbumDataByID(album_id);
 
-        uint32_t path_string_id = file.read();
+        uint32_t path_string_id = metadataFile.read();
 
-        // Resolve strings
         char buffer[256];
-        readString(file, title_string_id, buffer, sizeof(buffer));
+        readString(metadataFile, title_string_id, buffer, sizeof(buffer));
         String title = String(buffer);
-        readString(file, path_string_id, buffer, sizeof(buffer));
+        readString(metadataFile, path_string_id, buffer, sizeof(buffer));
         String path = String(buffer);
 
         Serial.printf("Song %u (entry %u):\n", songs_found + 1, entry_index);
@@ -304,5 +318,5 @@ void MetadataManager::readFirstNSongs(uint8_t n) {
     }
 
     Serial.printf("Displayed %u active songs\n", songs_found);
-    file.close();
+    metadataFile.close();
 }
