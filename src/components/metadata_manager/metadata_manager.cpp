@@ -70,7 +70,9 @@ CategoryInfo MetadataManager::getArtistDataByID(File& file, uint32_t artist_id) 
         return info;
     }
 
-    info.categoryName = readString(file, string_table_offset, artist_string_id);
+    char buffer[256];
+    readString(file, artist_string_id, buffer, sizeof(buffer));
+    info.categoryName = String(buffer);
     
 
     return info;
@@ -89,14 +91,17 @@ CategoryInfo MetadataManager::getAlbumDataByID(File& file, uint32_t album_id) {
         return info;
     }
 
-    info.categoryName = readString(file, string_table_offset, album_string_id);
+    char buffer[256];
+    readString(file, album_string_id, buffer, sizeof(buffer));
+    info.categoryName = String(buffer);
     Serial.printf("Album name: %s\n", info.categoryName.c_str());
 
     int artist_id = getArtistIdFromAlbum(file, album_table_offset, album_id);
     if (artist_id >= 0) {
         int artist_string_id = readStringId(file, Offsets::ARTIST_TABLE_OFFSET, artist_id);
         if (artist_string_id >= 0) {
-            info.artistName = readString(file, string_table_offset, artist_string_id);
+            readString(file, artist_string_id, buffer, sizeof(buffer));
+            info.artistName = String(buffer);
             Serial.printf("Artist name from album: %s\n", info.artistName.c_str());
         }
     }
@@ -107,10 +112,11 @@ CategoryInfo MetadataManager::getAlbumDataByID(File& file, uint32_t album_id) {
 
 
 
-String MetadataManager::readString(File& file, uint32_t string_table_offset, uint32_t string_id) {
+void MetadataManager::readString(File& file, uint32_t string_id, char* buffer, size_t buffer_size) {
     if (string_id >= MAX_STRINGS) {
         Serial.printf("Error: string_id %u exceeds MAX_STRINGS %d\n", string_id, MAX_STRINGS);
-        return "";
+        buffer[0] = '\0';
+        return;
     }
     
     file.seek(string_offsets[string_id]);
@@ -118,12 +124,9 @@ String MetadataManager::readString(File& file, uint32_t string_table_offset, uin
     uint16_t string_length = file.read();
     string_length |= ((uint16_t)file.read() << 8);
     
-    char* buffer = new char[string_length + 1];
-    file.read((uint8_t*)buffer, string_length);
-    buffer[string_length] = '\0';
-    String result = String(buffer);
-    delete[] buffer;
-    return result;
+    size_t read_len = (string_length < buffer_size - 1) ? string_length : buffer_size - 1;
+    file.read((uint8_t*)buffer, read_len);
+    buffer[read_len] = '\0';
 }
 // Retrieves string id of entry in table
 int MetadataManager::readStringId(File& file, Offsets table_type, uint32_t entry_id) {
@@ -284,8 +287,11 @@ void MetadataManager::readFirstNSongs(uint8_t n) {
         uint32_t path_string_id = file.read();
 
         // Resolve strings
-        String title = readString(file, string_table_offset, title_string_id);
-        String path = readString(file, string_table_offset, path_string_id);
+        char buffer[256];
+        readString(file, title_string_id, buffer, sizeof(buffer));
+        String title = String(buffer);
+        readString(file, path_string_id, buffer, sizeof(buffer));
+        String path = String(buffer);
 
         Serial.printf("Song %u (entry %u):\n", songs_found + 1, entry_index);
         Serial.printf("  Title: %s\n", title.c_str());

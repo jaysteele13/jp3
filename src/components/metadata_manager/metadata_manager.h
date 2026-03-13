@@ -16,7 +16,7 @@ class MetadataManager {
     private:
         static uint32_t string_offsets[MAX_STRINGS];
         static bool offset_index_valid;
-        String readString(File& file, uint32_t string_table_offset, uint32_t string_id);
+        void readString(File& file, uint32_t string_id, char* buffer, size_t buffer_size);
         int getArtistIdFromAlbum(File& file, uint32_t album_table_offset, uint32_t album_id);
         uint32_t readTableOffset(File& file, Offsets offset);
         void buildStringOffsetIndex(File& file, uint32_t string_table_offset);
