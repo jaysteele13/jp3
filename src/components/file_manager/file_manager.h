@@ -18,20 +18,22 @@
 #include "SD.h"
 #include "FS.h"
 
-// Wile have to pass MicroSD Card Read and Add plenty of logs
+// Include custom Libraries for File Navigation
+#include "utils/enums/paths.h"
 
 class FileManager {
     private:
-        // str* currentPath = nullptr; // Probably do not need
-        // Probably will have to pass active instance of the microSD card Reader
         SPIClass spi;
+        bool validatePaths();
         
     public:
         FileManager();
-        void init();
+        void initSD();
+        bool validate();
         String GetBasePath();
         void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
-        String ReadFile(String* basePath); // is String efficient? Plan with AI Have very good Prompt.
+        String ReadFile(String* basePath);
+        File openMetadataFile();
         
     };
 

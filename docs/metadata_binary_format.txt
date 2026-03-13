@@ -1,0 +1,155 @@
+================================================================================
+                    JP3 METADATA BINARY FILE FORMAT
+================================================================================
+
+SOURCE: Rust Tauri application that writes the binary file
+
+WRITE ORDER (sequential):
+  1. Header (40 bytes)
+  2. String Table (variable)
+  3. Artist Table (8 bytes × n)
+  4. Album Table (16 bytes × n)
+  5. Song Table (24 bytes × n)
+
+================================================================================
+                          HEADER (40 bytes at offset 0)
+================================================================================
+
+Offset  | Size  | Field                    | Description
+--------|-------|--------------------------|----------------------------------
+0x00    | 4     | magic bytes              | "LIB1" (4 bytes)
+0x04    | 4     | version                  | u32, little-endian
+0x08    | 4     | song_count               | u32, little-endian
+0x0C    | 4     | artist_count             | u32, little-endian
+0x10    | 4     | album_count              | u32, little-endian
+0x14    | 4     | string_table_offset      | u32, little-endian (typically 40)
+0x18    | 4     | artist_table_offset      | u32, little-endian
+0x1C    | 4     | album_table_offset       | u32, little-endian
+0x20    | 4     | song_table_offset        | u32, little-endian
+0x24    | 4     | reserved                 | 4 bytes
+
+================================================================================
+                          ARTIST ENTRY (8 bytes)
+================================================================================
+
+Offset  | Size  | Field           | Description
+--------|-------|-----------------|----------------------------------
+0x00    | 4     | name_string_id | u32 - use this ID to lookup in string table
+0x04    | 4     | reserved        | 4 bytes
+
+================================================================================
+                          ALBUM ENTRY (16 bytes)
+================================================================================
+
+Offset  | Size  | Field           | Description
+--------|-------|-----------------|----------------------------------
+0x00    | 4     | name_string_id | u32 - use this ID to lookup in string table
+0x04    | 4     | artist_id       | u32 - which artist owns this album
+0x08    | 2     | year            | u16, little-endian
+0x0A    | 6     | reserved        | 6 bytes
+
+================================================================================
+                          SONG ENTRY (24 bytes)
+================================================================================
+
+Offset  | Size  | Field           | Description
+--------|-------|-----------------|----------------------------------
+0x00    | 4     | title_string_id | u32 - lookup in string table
+0x04    | 4     | artist_id        | u32 - lookup in artist table
+0x08    | 4     | album_id         | u32 - lookup in album table
+0x0C    | 4     | path_string_id   | u32 - lookup in string table (e.g., "00/001.mp3")
+0x10    | 2     | track_number     | u16, little-endian
+0x12    | 2     | duration_sec     | u16, little-endian
+0x14    | 1     | flags            | u8 - 0x00 = active, 0x01 = deleted
+0x15    | 3     | reserved         | 3 bytes
+
+================================================================================
+                          STRING TABLE
+================================================================================
+
+Location: At string_table_offset (from header, typically 40)
+
+Format: Each string is stored sequentially (NOT null-terminated)
+
+  [2 bytes: length (u16, little-endian)] + [N bytes: UTF-8 string]
+
+String ID = index (0 = first string, 1 = second string, etc.)
+
+To resolve a string ID:
+  1. Seek to string_table_offset
+  2. Loop through strings, skipping until reaching target string_id
+  3. Read 2-byte length, then read that many bytes as the string
+
+================================================================================
+                          LOOKUP FLOW
+================================================================================
+
+To get song information, you need multiple lookups:
+
+  Song Entry
+      │
+      ├── title_string_id ──────────────────► String Table ──► Title
+      │
+      ├── artist_id ──► Artist Table ──► name_string_id ──► String Table ──► Artist
+      │
+      ├── album_id ───► Album Table ───► name_string_id ──► String Table ──► Album
+      │
+      └── path_string_id ──────────────────► String Table ──► Path (e.g., "00/001.mp3")
+
+================================================================================
+                          CURRENT IMPLEMENTATION
+================================================================================
+
+File: src/components/metadata_manager/metadata_manager.cpp
+
+Functions implemented:
+
+1. readFirstSong()
+   - Opens metadata file at get_path(Paths::METADATA_PATH)
+   - Reads header: string_table_offset (0x14), song_table_offset (0x20)
+   - Reads first song entry (24 bytes at song_table_offset)
+   - Extracts: title_string_id, artist_id, album_id, path_string_id
+   - Resolves title_string_id to actual string using readString()
+
+2. readString(File& file, uint32_t string_table_offset, uint32_t string_id)
+   - Linear search through string table
+   - For each string: read 2-byte length, skip or return
+   - Returns Arduino String object
+
+CURRENT LIMITATION:
+- readString() uses new/delete for temporary buffer (heap fragmentation)
+- No caching of parsed data
+- No index table for O(1) string lookup
+
+================================================================================
+                          FUTURE OPTIMIZATIONS
+================================================================================
+
+Priority 1: Eliminate heap fragmentation
+  - Replace String return with fixed-size char buffer
+  - Pass buffer as parameter to readString()
+
+Priority 2: Add caching
+  - Store parsed header info in RAM on init()
+  - Cache frequently accessed strings
+
+Priority 3: Build index table
+  - On init(), scan string table once and store offsets
+  - O(1) lookup instead of O(n) linear search
+
+Priority 4: Return structured data
+  - Create Song struct with all fields
+  - Return by value or reference (not pointer)
+
+Example Song struct:
+  struct Song {
+    String title;
+    String artist;
+    String album;
+    String path;
+    uint16_t track_number;
+    uint16_t duration_sec;
+    uint8_t flags;
+  };
+
+================================================================================
