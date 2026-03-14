@@ -61,6 +61,9 @@ class MetadataManager {
         int getArtistEntryCount() { return artist_count; }
         ArtistEntry* getArtistEntry(uint32_t index);
         
+        // String resolution (uses pre-built offset index)
+        bool readStringById(uint32_t string_id, char* buffer, size_t buffer_size);
+        
         // Gather Types needed to return data
         SongInfo getSongDataByID(uint32_t song_id);
         CategoryInfo getArtistDataByID(uint32_t artist_id);

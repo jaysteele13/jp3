@@ -17,9 +17,12 @@ public:
 
     // Album methods
     int getAlbumCount();
+    bool getAlbumName(uint32_t index, char* buffer, size_t buffer_size);
+    bool getAlbumArtistName(uint32_t index, char* buffer, size_t buffer_size);
 
     // Artist methods
     int getArtistCount();
+    bool getArtistName(uint32_t index, char* buffer, size_t buffer_size);
 };
 
 #endif

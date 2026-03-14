@@ -161,6 +161,40 @@ ArtistEntry* MetadataManager::getArtistEntry(uint32_t index) {
     return &artist_entries[index];
 }
 
+bool MetadataManager::readStringById(uint32_t string_id, char* buffer, size_t buffer_size) {
+    if (!offset_index_valid) {
+        Serial.println("ERROR: String offset index not ready");
+        buffer[0] = '\0';
+        return false;
+    }
+    
+    if (string_id >= MAX_STRINGS) {
+        Serial.printf("ERROR: string_id %u exceeds MAX_STRINGS %d\n", string_id, MAX_STRINGS);
+        buffer[0] = '\0';
+        return false;
+    }
+    
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("ERROR: Failed to open metadata file in readStringById");
+        buffer[0] = '\0';
+        return false;
+    }
+    
+    // Use the pre-built offset index for O(1) lookup
+    metadataFile.seek(string_offsets[string_id]);
+    
+    uint16_t string_length = metadataFile.read();
+    string_length |= ((uint16_t)metadataFile.read() << 8);
+    
+    size_t read_len = (string_length < buffer_size - 1) ? string_length : buffer_size - 1;
+    metadataFile.read((uint8_t*)buffer, read_len);
+    buffer[read_len] = '\0';
+    
+    metadataFile.close();
+    return true;
+}
+
 CategoryInfo MetadataManager::getArtistDataByID(uint32_t artist_id) {
     CategoryInfo info = {};
     
