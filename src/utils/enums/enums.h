@@ -20,6 +20,14 @@ struct SongInfo {
 };
 
 
+// SORTING
+enum class SortMode {
+    FILE_ORDER,      // File order
+    ALPHABETICAL, // Alphabetical by name
+    NEWEST,       // By year (descending) - albums only
+    OLDEST        // By year (ascending) - albums only
+};
+
 // CATEGORY
 enum class CategoryType {
     ALBUMS,

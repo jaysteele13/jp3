@@ -4,6 +4,12 @@
 uint32_t MetadataManager::string_offsets[MAX_STRINGS];
 bool MetadataManager::offset_index_valid = false;
 
+AlbumEntry MetadataManager::album_entries[MAX_ALBUMS];
+ArtistEntry MetadataManager::artist_entries[MAX_ARTISTS];
+uint32_t MetadataManager::album_count = 0;
+uint32_t MetadataManager::artist_count = 0;
+bool MetadataManager::entries_loaded = false;
+
 MetadataManager::MetadataManager() : fileManager(nullptr) {
 }
 
@@ -26,7 +32,13 @@ void MetadataManager::init() {
     uint32_t string_table_offset = readTableOffset(metadataFile, Offsets::STRING_TABLE_OFFSET);
     buildStringOffsetIndex(metadataFile, string_table_offset);
     
+    // Load album and artist entries into RAM
+    loadAlbumEntries(metadataFile);
+    loadArtistEntries(metadataFile);
+    
     metadataFile.close();
+    
+    Serial.printf("MetadataManager init complete: %u albums, %u artists\n", album_count, artist_count);
 }
 
 void MetadataManager::buildStringOffsetIndex(File& file, uint32_t string_table_offset) {
@@ -63,6 +75,90 @@ uint32_t MetadataManager::readTableOffset(File& file, Offsets offset) {
     table_offset |= ((uint32_t)file.read() << 16);
     table_offset |= ((uint32_t)file.read() << 24);
     return table_offset;
+}
+
+void MetadataManager::loadAlbumEntries(File& file) {
+    // Read album count from header
+    file.seek(0x10);
+    album_count = file.read();
+    album_count |= ((uint32_t)file.read() << 8);
+    album_count |= ((uint32_t)file.read() << 16);
+    album_count |= ((uint32_t)file.read() << 24);
+    
+    if (album_count > MAX_ALBUMS) {
+        Serial.printf("WARNING: Album count %u exceeds MAX_ALBUMS %d, truncating\n", album_count, MAX_ALBUMS);
+        album_count = MAX_ALBUMS;
+    }
+    
+    uint32_t album_table_offset = readTableOffset(file, Offsets::ALBUM_TABLE_OFFSET);
+    file.seek(album_table_offset);
+    
+    for (uint32_t i = 0; i < album_count; i++) {
+        album_entries[i].name_string_id = file.read();
+        album_entries[i].name_string_id |= ((uint32_t)file.read() << 8);
+        album_entries[i].name_string_id |= ((uint32_t)file.read() << 16);
+        album_entries[i].name_string_id |= ((uint32_t)file.read() << 24);
+        
+        album_entries[i].artist_id = file.read();
+        album_entries[i].artist_id |= ((uint32_t)file.read() << 8);
+        album_entries[i].artist_id |= ((uint32_t)file.read() << 16);
+        album_entries[i].artist_id |= ((uint32_t)file.read() << 24);
+        
+        album_entries[i].year = file.read();
+        album_entries[i].year |= ((uint16_t)file.read() << 8);
+        
+        // Skip 6 reserved bytes
+        for (int j = 0; j < 6; j++) {
+            file.read();
+        }
+    }
+    
+    Serial.printf("Loaded %u album entries into RAM\n", album_count);
+}
+
+void MetadataManager::loadArtistEntries(File& file) {
+    // Read artist count from header
+    file.seek(0x0C);
+    artist_count = file.read();
+    artist_count |= ((uint32_t)file.read() << 8);
+    artist_count |= ((uint32_t)file.read() << 16);
+    artist_count |= ((uint32_t)file.read() << 24);
+    
+    if (artist_count > MAX_ARTISTS) {
+        Serial.printf("WARNING: Artist count %u exceeds MAX_ARTISTS %d, truncating\n", artist_count, MAX_ARTISTS);
+        artist_count = MAX_ARTISTS;
+    }
+    
+    uint32_t artist_table_offset = readTableOffset(file, Offsets::ARTIST_TABLE_OFFSET);
+    file.seek(artist_table_offset);
+    
+    for (uint32_t i = 0; i < artist_count; i++) {
+        artist_entries[i].name_string_id = file.read();
+        artist_entries[i].name_string_id |= ((uint32_t)file.read() << 8);
+        artist_entries[i].name_string_id |= ((uint32_t)file.read() << 16);
+        artist_entries[i].name_string_id |= ((uint32_t)file.read() << 24);
+        
+        // Skip 4 reserved bytes
+        for (int j = 0; j < 4; j++) {
+            file.read();
+        }
+    }
+    
+    Serial.printf("Loaded %u artist entries into RAM\n", artist_count);
+}
+
+AlbumEntry* MetadataManager::getAlbumEntry(uint32_t index) {
+    if (index >= album_count) {
+        return nullptr;
+    }
+    return &album_entries[index];
+}
+
+ArtistEntry* MetadataManager::getArtistEntry(uint32_t index) {
+    if (index >= artist_count) {
+        return nullptr;
+    }
+    return &artist_entries[index];
 }
 
 CategoryInfo MetadataManager::getArtistDataByID(uint32_t artist_id) {
