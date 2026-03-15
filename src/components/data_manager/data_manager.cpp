@@ -2,6 +2,92 @@
 #include "../metadata_manager/metadata_manager.h"
 #include <string.h>
 
+// Helper function for case-insensitive string comparison
+// Returns: -1 if a < b, 0 if equal, 1 if a > b
+static int strcasecmp_local(const char* a, const char* b, size_t maxLen) {
+    for (size_t i = 0; i < maxLen; i++) {
+        char ca = a[i];
+        char cb = b[i];
+        
+        // Convert to lowercase if uppercase
+        if (ca >= 'A' && ca <= 'Z') ca += 32;
+        if (cb >= 'A' && cb <= 'Z') cb += 32;
+        
+        if (ca != cb) return (ca < cb) ? -1 : 1;
+        if (ca == '\0') return 0;
+    }
+    return 0;
+}
+
+// Quicksort partition for albums
+static int partitionAlbums(uint32_t* indices, int low, int high, DataManager* dm) {
+    uint32_t pivot = indices[high];
+    int i = low - 1;
+    
+    for (int j = low; j < high; j++) {
+        // Compare indices[j] with pivot using DataManager
+        char nameJ[DATA_MANAGER_BUFFER_SIZE];
+        char nameP[DATA_MANAGER_BUFFER_SIZE];
+        dm->getAlbumName(indices[j], nameJ, sizeof(nameJ));
+        dm->getAlbumName(pivot, nameP, sizeof(nameP));
+        
+        if (strcasecmp_local(nameJ, nameP, DATA_MANAGER_BUFFER_SIZE) <= 0) {
+            i++;
+            uint32_t temp = indices[i];
+            indices[i] = indices[j];
+            indices[j] = temp;
+        }
+    }
+    
+    uint32_t temp = indices[i + 1];
+    indices[i + 1] = indices[high];
+    indices[high] = temp;
+    return i + 1;
+}
+
+// Quicksort partition for artists
+static int partitionArtists(uint32_t* indices, int low, int high, DataManager* dm) {
+    uint32_t pivot = indices[high];
+    int i = low - 1;
+    
+    for (int j = low; j < high; j++) {
+        char nameJ[DATA_MANAGER_BUFFER_SIZE];
+        char nameP[DATA_MANAGER_BUFFER_SIZE];
+        dm->getArtistName(indices[j], nameJ, sizeof(nameJ));
+        dm->getArtistName(pivot, nameP, sizeof(nameP));
+        
+        if (strcasecmp_local(nameJ, nameP, DATA_MANAGER_BUFFER_SIZE) <= 0) {
+            i++;
+            uint32_t temp = indices[i];
+            indices[i] = indices[j];
+            indices[j] = temp;
+        }
+    }
+    
+    uint32_t temp = indices[i + 1];
+    indices[i + 1] = indices[high];
+    indices[high] = temp;
+    return i + 1;
+}
+
+// Quicksort for albums
+static void quicksortAlbums(uint32_t* indices, int low, int high, DataManager* dm) {
+    if (low < high) {
+        int pi = partitionAlbums(indices, low, high, dm);
+        quicksortAlbums(indices, low, pi - 1, dm);
+        quicksortAlbums(indices, pi + 1, high, dm);
+    }
+}
+
+// Quicksort for artists
+static void quicksortArtists(uint32_t* indices, int low, int high, DataManager* dm) {
+    if (low < high) {
+        int pi = partitionArtists(indices, low, high, dm);
+        quicksortArtists(indices, low, pi - 1, dm);
+        quicksortArtists(indices, pi + 1, high, dm);
+    }
+}
+
 DataManager::DataManager() : metadataManager(nullptr), album_count(0), artist_count(0),
     currentAlbumSort(SortMode::FILE_ORDER), currentArtistSort(SortMode::FILE_ORDER) {
     // Initialize indices to sequential order
@@ -30,44 +116,18 @@ void DataManager::init() {
     Serial.printf("Album count: %u, Artist count: %u\n", album_count, artist_count);
     
     // Default sort is alphabetical
-    setAlbumSortMode(SortMode::FILE_ORDER);
-    setArtistSortMode(SortMode::FILE_ORDER);
+    setAlbumSortMode(SortMode::ALPHABETICAL);
+    setArtistSortMode(SortMode::ALPHABETICAL);
     
     // Test string resolution
     char buffer[DATA_MANAGER_BUFFER_SIZE];
     if (album_count > 0) {
         getAlbumName(0, buffer, sizeof(buffer));
-        Serial.printf("First album (sorted): %s\n", buffer);
-        getAlbumArtistName(0, buffer, sizeof(buffer));
-        Serial.printf("First album artist: %s\n", buffer);
-        
-        // Test getAlbums windowed access
-        CategoryInfo* albums = nullptr;
-        int numAlbums = getAlbums(0, 2, albums);
-        if (numAlbums > 0) {
-            Serial.printf("getAlbums returned: %d\n", numAlbums);
-            Serial.printf("getAlbums[0]: %s - %s\n", albums[0].categoryName.c_str(), albums[0].artistName.c_str());
-            if (numAlbums > 1) {
-                Serial.printf("getAlbums[1]: %s - %s\n", albums[1].categoryName.c_str(), albums[1].artistName.c_str());
-            }
-            delete[] albums;
-        }
+        Serial.printf("First album: %s\n", buffer);
     }
     if (artist_count > 0) {
         getArtistName(0, buffer, sizeof(buffer));
-        Serial.printf("First artist (sorted): %s\n", buffer);
-        
-        // Test getArtists windowed access
-        CategoryInfo* artists = nullptr;
-        int numArtists = getArtists(0, 2, artists);
-        if (numArtists > 0) {
-            Serial.printf("getArtists returned: %d\n", numArtists);
-            Serial.printf("getArtists[0]: %s\n", artists[0].categoryName.c_str());
-            if (numArtists > 1) {
-                Serial.printf("getArtists[1]: %s\n", artists[1].categoryName.c_str());
-            }
-            delete[] artists;
-        }
+        Serial.printf("First artist: %s\n", buffer);
     }
 }
 
@@ -91,25 +151,6 @@ void DataManager::setArtistSortMode(SortMode mode) {
     sortArtistIndices(mode);
 }
 
-int DataManager::compareAlbumNames(uint32_t indexA, uint32_t indexB) {
-    char nameA[DATA_MANAGER_BUFFER_SIZE];
-    char nameB[DATA_MANAGER_BUFFER_SIZE];
-    
-    getAlbumName(indexA, nameA, sizeof(nameA));
-    getAlbumName(indexB, nameB, sizeof(nameB));
-    
-    return strcmp(nameA, nameB);
-}
-
-int DataManager::compareArtistNames(uint32_t indexA, uint32_t indexB) {
-    char nameA[DATA_MANAGER_BUFFER_SIZE];
-    char nameB[DATA_MANAGER_BUFFER_SIZE];
-    
-    getArtistName(indexA, nameA, sizeof(nameA));
-    getArtistName(indexB, nameB, sizeof(nameB));
-    
-    return strcmp(nameA, nameB);
-}
 
 void DataManager::sortAlbumIndices(SortMode mode) {
     if (mode == SortMode::FILE_ORDER) {
@@ -122,17 +163,8 @@ void DataManager::sortAlbumIndices(SortMode mode) {
     }
     
     if (mode == SortMode::ALPHABETICAL) {
-        // Bubble sort for now - simple and works
-        for (uint32_t i = 0; i < album_count - 1; i++) {
-            for (uint32_t j = 0; j < album_count - i - 1; j++) {
-                if (compareAlbumNames(album_indices[j], album_indices[j + 1]) > 0) {
-                    // Swap
-                    uint32_t temp = album_indices[j];
-                    album_indices[j] = album_indices[j + 1];
-                    album_indices[j + 1] = temp;
-                }
-            }
-        }
+        // Quicksort for albums
+        quicksortAlbums(album_indices, 0, album_count - 1, this);
         Serial.println("Album sort: ALPHABETICAL");
         return;
     }
@@ -151,15 +183,8 @@ void DataManager::sortArtistIndices(SortMode mode) {
     }
     
     if (mode == SortMode::ALPHABETICAL) {
-        for (uint32_t i = 0; i < artist_count - 1; i++) {
-            for (uint32_t j = 0; j < artist_count - i - 1; j++) {
-                if (compareArtistNames(artist_indices[j], artist_indices[j + 1]) > 0) {
-                    uint32_t temp = artist_indices[j];
-                    artist_indices[j] = artist_indices[j + 1];
-                    artist_indices[j + 1] = temp;
-                }
-            }
-        }
+        // Quicksort for artists
+        quicksortArtists(artist_indices, 0, artist_count - 1, this);
         Serial.println("Artist sort: ALPHABETICAL");
         return;
     }
