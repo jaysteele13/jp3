@@ -20,6 +20,8 @@
 // Factory
 #include "screen_factory.h"
 
+class DataManager;  // Forward declaration
+
 /**
  * GUIManager orchestrates the display and input for the OLED GUI system.
  * 
@@ -32,6 +34,7 @@ private:
     Adafruit_SSD1306* display;
     ButtonManager buttonManager;
     NavigationController navigator;
+    DataManager* dataManager;
     
     // Non-blocking timing
     unsigned long lastUpdateTime;
@@ -46,7 +49,10 @@ public:
     bool begin();
     void clear();
     void update();
-
+    
+    // Set DataManager for data loading
+    void setDataManager(DataManager* dm) { dataManager = dm; }
+    
     // Navigation methods - all return NavResult for error handling
     NavResult pushScreen(ScreenBase* screen);
     NavResult popScreen();

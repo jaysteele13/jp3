@@ -26,9 +26,7 @@ void setup() {
   dataManager.setMetadataManager(&metadataManager);
   dataManager.init();
   
-  // test functions
-  // metadataManager.readFirstNSongs(5);
-  dataManager.getAlbumCount();
+  gui.setDataManager(&dataManager);
   
   // Initialize with section screen (new root)
   NavResult result = gui.displaySection(&section);

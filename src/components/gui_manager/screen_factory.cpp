@@ -1,13 +1,18 @@
 #include "screen_factory.h"
 #include "../../utils/utils.h"
+#include "../data_manager/data_manager.h"
 
-Category* ScreenFactory::createCategory(FolderType folderType) {
+Category* ScreenFactory::createCategory(FolderType folderType, DataManager* dm) {
     CategoryType categoryType = Utils::folderTypeToCategoryType(folderType);
-    return new Category(categoryType);
+    Category* category = new Category(categoryType);
+    category->setDataManager(dm);
+    return category;
 }
 
-Folder* ScreenFactory::createFolder(FolderType folderType, const String& categoryName) {
-    return new Folder(folderType, categoryName);
+Folder* ScreenFactory::createFolder(FolderType folderType, const String& categoryName, DataManager* dm) {
+    Folder* folder = new Folder(folderType, categoryName);
+    folder->setDataManager(dm);
+    return folder;
 }
 
 

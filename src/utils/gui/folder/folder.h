@@ -18,6 +18,7 @@
 #include "../../navigation/screen_base.h"
 
 class ButtonManager;  // Forward declaration
+class DataManager;  // Forward declaration
 
 struct DisplayConfig {
     static const int LINE_HEIGHT = 12;
@@ -48,6 +49,9 @@ class Folder : public ScreenBase {
         // Reset selection and page
         void resetSelection();
         
+        // Set DataManager for data loading
+        void setDataManager(DataManager* dm) { dataManager = dm; }
+        
         ScreenType getScreenType() const override { return ScreenType::FOLDER; }
         String getScreenName() const override { return "Folder: " + folderName; }
 
@@ -58,6 +62,7 @@ class Folder : public ScreenBase {
         int totalSongs;
         int currentPage;
         int selectedSongIndex;
+        DataManager* dataManager;
         static const int SONGS_PER_PAGE = 2;
         
         void drawSelectionBox(Adafruit_SSD1306 &display, int x, int y, int width, int height);
