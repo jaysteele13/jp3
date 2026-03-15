@@ -8,10 +8,12 @@
 #include "../../utils/gui/song/song.h"
 #include "../../utils/enums/enums.h"
 
+class DataManager;
+
 class ScreenFactory {
 public:
-    static Category* createCategory(FolderType folderType);
-    static Folder* createFolder(FolderType folderType, const String& categoryName);
+    static Category* createCategory(FolderType folderType, DataManager* dm);
+    static Folder* createFolder(FolderType folderType, const String& categoryName, DataManager* dm);
     static Song* createSong(const SongInfo* songInfo);
     static Section* createSection();
 };

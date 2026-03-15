@@ -1,5 +1,6 @@
 #include "category.h"
 #include "../../../components/button_manager/button_manager.h"
+#include "../../../components/data_manager/data_manager.h"
 
 void Category::handleInput(ButtonManager& buttons) {
     if (buttons.checkDownPressed()) {
@@ -13,7 +14,7 @@ void Category::handleInput(ButtonManager& buttons) {
     }
 }
 
-Category::Category(CategoryType categoryType) : categoryType(categoryType), totalCategories(0), currentPage(0), selectedFolderIndex(0) {
+Category::Category(CategoryType categoryType) : categoryType(categoryType), totalCategories(0), currentPage(0), selectedFolderIndex(0), dataManager(nullptr) {
     categories = nullptr;
     switch (categoryType) {
         case CategoryType::ALBUMS:
@@ -31,6 +32,34 @@ Category::Category(CategoryType categoryType) : categoryType(categoryType), tota
 
 CategoryInfo* Category::loadCategoryData() {
     // Try to load real data first based on category type
+    // If DataManager is available, use it; otherwise fallback to dummyData
+    
+    if (dataManager != nullptr) {
+        switch(categoryType) {
+            case CategoryType::ALBUMS: {
+                int count = dataManager->getAlbums(0, dataManager->getAlbumCount(), categories);
+                if (count > 0) {
+                    totalCategories = count;
+                    return categories;
+                }
+                break;
+            }
+            case CategoryType::ARTISTS: {
+                int count = dataManager->getArtists(0, dataManager->getArtistCount(), categories);
+                if (count > 0) {
+                    totalCategories = count;
+                    return categories;
+                }
+                break;
+            }
+            case CategoryType::PLAYLISTS:
+                // Playlists not implemented yet - fall through to dummy
+                break;
+        }
+    }
+    
+    // Fallback to dummy data if real data not available
+    // TODO: Remove this fallback once playlists are implemented
     int dataCount = 0;
     CategoryInfo* data = nullptr;
     
@@ -61,7 +90,7 @@ CategoryInfo* Category::loadCategoryData() {
             break;
     }
     
-    // Fallback to dummy data if real data not available
+    // Fallback if nothing worked
     totalCategories = 1;
     categories = new CategoryInfo[totalCategories];
     for (int i = 0; i < totalCategories; ++i) {

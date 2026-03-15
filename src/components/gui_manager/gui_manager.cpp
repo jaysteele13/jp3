@@ -10,7 +10,7 @@
 #define SCL_PIN 22
 
 GUIManager::GUIManager() 
-    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT) {
+    : lastUpdateTime(0), navigator(SCREEN_WIDTH, SCREEN_HEIGHT), dataManager(nullptr) {
     display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 }
 
@@ -152,12 +152,12 @@ void GUIManager::handleForwardNavigation() {
             // Exception for ALL_SONGS
             if (folderType == FolderType::ALL_SONGS) {
                 // ALL_SONGS goes directly to Folder, skipping Category
-                auto folder = ScreenFactory::createFolder(FolderType::ALL_SONGS, "All Songs");
+                auto folder = ScreenFactory::createFolder(FolderType::ALL_SONGS, "All Songs", dataManager);
                 Serial.println("NAV: Section -> Folder (All Songs)");
                 result = pushScreen(folder);
             } else {
                 // Other types go to Category first
-                auto category = ScreenFactory::createCategory(folderType);
+                auto category = ScreenFactory::createCategory(folderType, dataManager);
                 Serial.print("NAV: Section -> Category (");
                 Serial.print((int)Utils::folderTypeToCategoryType(folderType));
                 Serial.println(")");
@@ -175,7 +175,7 @@ void GUIManager::handleForwardNavigation() {
                 CategoryType categoryType = category->getCategoryType();
                 FolderType folderType = Utils::categoryTypeToFolderType(categoryType);
                 
-                auto folder = ScreenFactory::createFolder(folderType, selected->categoryName);
+                auto folder = ScreenFactory::createFolder(folderType, selected->categoryName, dataManager);
                 Serial.print("NAV: Category -> Folder (");
                 Serial.print(selected->categoryName);
                 Serial.println(")");

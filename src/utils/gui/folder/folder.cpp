@@ -1,5 +1,6 @@
 #include "folder.h"
 #include "../../../components/button_manager/button_manager.h"
+#include "../../../components/data_manager/data_manager.h"
 
 void Folder::handleInput(ButtonManager& buttons) {
     if (buttons.checkDownPressed()) {
@@ -49,7 +50,8 @@ Folder::Folder(FolderType folderType, String folderName) :
     folderName(folderName), 
     totalSongs(0), 
     currentPage(0),
-    selectedSongIndex(0) {
+    selectedSongIndex(0),
+    dataManager(nullptr) {
     songs = nullptr;
 }
 

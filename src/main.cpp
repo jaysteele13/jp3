@@ -2,11 +2,13 @@
 #include "components/gui_manager/gui_manager.h"
 #include "components/file_manager/file_manager.h"
 #include "components/metadata_manager/metadata_manager.h"
+#include "components/data_manager/data_manager.h"
 
 GUIManager gui;
 Section section;
 FileManager fileManager;
 MetadataManager metadataManager;
+DataManager dataManager;
 
 
 void setup() {
@@ -21,7 +23,10 @@ void setup() {
   metadataManager.setFileManager(&fileManager);
   metadataManager.init();
   
-  metadataManager.readFirstNSongs(5);
+  dataManager.setMetadataManager(&metadataManager);
+  dataManager.init();
+  
+  gui.setDataManager(&dataManager);
   
   // Initialize with section screen (new root)
   NavResult result = gui.displaySection(&section);

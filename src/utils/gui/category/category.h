@@ -22,6 +22,7 @@
 #include "../../navigation/screen_base.h"
 
 class ButtonManager;  // Forward declaration
+class DataManager;  // Forward declaration
 
 struct CategoryConfig {
     static const int LINE_HEIGHT = 12;
@@ -58,6 +59,9 @@ class Category : public ScreenBase {
         // Reset selection and page
         void resetSelection();
         
+        // Set DataManager for data loading
+        void setDataManager(DataManager* dm) { dataManager = dm; }
+        
         ScreenType getScreenType() const override { return ScreenType::CATEGORY; }
         String getScreenName() const override { return categoryName; }
 
@@ -68,6 +72,7 @@ class Category : public ScreenBase {
         int totalCategories;
         int currentPage;
         int selectedFolderIndex;
+        DataManager* dataManager;
         
         void drawFolder(Adafruit_SSD1306 &display, int folderIndex, int &currentY, bool isSelected);
         void drawSmallBitmap(Adafruit_SSD1306 &display, int x, int y);
