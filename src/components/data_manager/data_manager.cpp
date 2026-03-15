@@ -34,16 +34,40 @@ void DataManager::init() {
     setArtistSortMode(SortMode::FILE_ORDER);
     
     // Test string resolution
-    char buffer[64];
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
     if (album_count > 0) {
         getAlbumName(0, buffer, sizeof(buffer));
         Serial.printf("First album (sorted): %s\n", buffer);
         getAlbumArtistName(0, buffer, sizeof(buffer));
         Serial.printf("First album artist: %s\n", buffer);
+        
+        // Test getAlbums windowed access
+        CategoryInfo* albums = nullptr;
+        int numAlbums = getAlbums(0, 2, albums);
+        if (numAlbums > 0) {
+            Serial.printf("getAlbums returned: %d\n", numAlbums);
+            Serial.printf("getAlbums[0]: %s - %s\n", albums[0].categoryName.c_str(), albums[0].artistName.c_str());
+            if (numAlbums > 1) {
+                Serial.printf("getAlbums[1]: %s - %s\n", albums[1].categoryName.c_str(), albums[1].artistName.c_str());
+            }
+            delete[] albums;
+        }
     }
     if (artist_count > 0) {
         getArtistName(0, buffer, sizeof(buffer));
         Serial.printf("First artist (sorted): %s\n", buffer);
+        
+        // Test getArtists windowed access
+        CategoryInfo* artists = nullptr;
+        int numArtists = getArtists(0, 2, artists);
+        if (numArtists > 0) {
+            Serial.printf("getArtists returned: %d\n", numArtists);
+            Serial.printf("getArtists[0]: %s\n", artists[0].categoryName.c_str());
+            if (numArtists > 1) {
+                Serial.printf("getArtists[1]: %s\n", artists[1].categoryName.c_str());
+            }
+            delete[] artists;
+        }
     }
 }
 
@@ -68,8 +92,8 @@ void DataManager::setArtistSortMode(SortMode mode) {
 }
 
 int DataManager::compareAlbumNames(uint32_t indexA, uint32_t indexB) {
-    char nameA[64];
-    char nameB[64];
+    char nameA[DATA_MANAGER_BUFFER_SIZE];
+    char nameB[DATA_MANAGER_BUFFER_SIZE];
     
     getAlbumName(indexA, nameA, sizeof(nameA));
     getAlbumName(indexB, nameB, sizeof(nameB));
@@ -78,8 +102,8 @@ int DataManager::compareAlbumNames(uint32_t indexA, uint32_t indexB) {
 }
 
 int DataManager::compareArtistNames(uint32_t indexA, uint32_t indexB) {
-    char nameA[64];
-    char nameB[64];
+    char nameA[DATA_MANAGER_BUFFER_SIZE];
+    char nameB[DATA_MANAGER_BUFFER_SIZE];
     
     getArtistName(indexA, nameA, sizeof(nameA));
     getArtistName(indexB, nameB, sizeof(nameB));
@@ -196,4 +220,68 @@ bool DataManager::getArtistName(uint32_t index, char* buffer, size_t buffer_size
     }
     
     return metadataManager->readStringById(entry->name_string_id, buffer, buffer_size);
+}
+
+int DataManager::getAlbums(uint16_t startIndex, uint8_t count, CategoryInfo*& out) {
+    if (!metadataManager) return -1;
+    if (startIndex >= album_count) return -1;
+    
+    // Allocate array
+    out = new CategoryInfo[count];
+    if (!out) return -1;
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < count; i++) {
+        uint16_t idx = startIndex + i;
+        if (idx >= album_count) break;
+        
+        // Get album name into buffer, copy to String
+        if (getAlbumName(idx, buffer, sizeof(buffer))) {
+            out[i].categoryName = String(buffer);
+        } else {
+            out[i].categoryName = String("Unknown");
+        }
+        
+        // Get artist name into buffer, copy to String
+        if (getAlbumArtistName(idx, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        itemsReturned++;
+    }
+    return itemsReturned;
+}
+
+int DataManager::getArtists(uint16_t startIndex, uint8_t count, CategoryInfo*& out) {
+    if (!metadataManager) return -1;
+    if (startIndex >= artist_count) return -1;
+    
+    // Allocate array
+    out = new CategoryInfo[count];
+    if (!out) return -1;
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < count; i++) {
+        uint16_t idx = startIndex + i;
+        if (idx >= artist_count) break;
+        
+        // Get artist name into buffer, copy to String
+        if (getArtistName(idx, buffer, sizeof(buffer))) {
+            out[i].categoryName = String(buffer);
+        } else {
+            out[i].categoryName = String("Unknown");
+        }
+        
+        // Artists don't have a parent name in this context, leave empty
+        out[i].artistName = String("");
+        
+        itemsReturned++;
+    }
+    return itemsReturned;
 }
