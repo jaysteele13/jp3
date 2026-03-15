@@ -37,13 +37,9 @@ class MetadataManager {
         static ArtistEntry artist_entries[MAX_ARTISTS];
         static uint32_t album_count;
         static uint32_t artist_count;
-        static bool entries_loaded;
         
-        void readString(File& file, uint32_t string_id, char* buffer, size_t buffer_size);
-        int getArtistIdFromAlbum(File& file, uint32_t album_table_offset, uint32_t album_id);
         uint32_t readTableOffset(File& file, Offsets offset);
         void buildStringOffsetIndex(File& file, uint32_t string_table_offset);
-        int readStringId(File& file, Offsets table_type, uint32_t entry_id);
         void loadAlbumEntries(File& file);
         void loadArtistEntries(File& file);
 
@@ -63,17 +59,6 @@ class MetadataManager {
         
         // String resolution (uses pre-built offset index)
         bool readStringById(uint32_t string_id, char* buffer, size_t buffer_size);
-        
-        // Gather Types needed to return data
-        SongInfo getSongDataByID(uint32_t song_id);
-        CategoryInfo getArtistDataByID(uint32_t artist_id);
-        CategoryInfo getAlbumDataByID(uint32_t album_id);
-        
-        int readStringId(Offsets table_type, uint32_t entry_id);
-       
-        void readFirstNSongs(uint8_t n);
 };
-
-
 
 #endif
