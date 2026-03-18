@@ -1,75 +1,125 @@
-# ESP32 MP3 Player - Project Context & Principles
+# JP3 MP3 Player - Project Context
 
 ## Project Overview
-Lightweight MP3 player using ESP32 with OLED display (128x64 SSD1306). Features hierarchical navigation through music library with Factory Method pattern for screen creation and stack-based navigation system with state management.
+ESP32 MP3 player with SSD1306 OLED (128x64), hierarchical navigation through music library (SD card), factory method pattern for screen creation, stack-based navigation.
+
+## Binary Format for SD Card Metadata
+
+**File**: `/jp3/metadata/library.bin`
+
+### Write Order (sequential):
+1. Header (40 bytes)
+2. String Table (variable)
+3. Artist Table (8 bytes × n)
+4. Album Table (16 bytes × n)
+5. Song Table (24 bytes × n)
+
+### Header (40 bytes at offset 0)
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0x00 | 4 | magic bytes | "LIB1" (4 bytes) |
+| 0x04 | 4 | version | u32, little-endian |
+| 0x08 | 4 | song_count | u32, little-endian |
+| 0x0C | 4 | artist_count | u32, little-endian |
+| 0x10 | 4 | album_count | u32, little-endian |
+| 0x14 | 4 | string_table_offset | u32 (typically 40) |
+| 0x18 | 4 | artist_table_offset | u32 |
+| 0x1C | 4 | album_table_offset | u32 |
+| 0x20 | 4 | song_table_offset | u32 |
+| 0x24 | 4 | reserved | 4 bytes |
+
+### Artist Entry (8 bytes)
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0x00 | 4 | name_string_id | u32 - lookup in string table |
+| 0x04 | 4 | reserved | 4 bytes |
+
+### Album Entry (16 bytes)
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0x00 | 4 | name_string_id | u32 |
+| 0x04 | 4 | artist_id | u32 |
+| 0x08 | 2 | year | u16, little-endian |
+| 0x0A | 6 | reserved | 6 bytes |
+
+### Song Entry (24 bytes)
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0x00 | 4 | title_string_id | u32 |
+| 0x04 | 4 | artist_id | u32 |
+| 0x08 | 4 | album_id | u32 |
+| 0x0C | 4 | path_string_id | u32 (e.g., "00/001.mp3") |
+| 0x10 | 2 | track_number | u16 |
+| 0x12 | 2 | duration_sec | u16 |
+| 0x14 | 1 | flags | u8 - 0x00=active, 0x01=deleted |
+| 0x15 | 3 | reserved | 3 bytes |
+
+### String Table
+Format: `[2 bytes: length (u16 LE)] + [N bytes: UTF-8 string]`
+String ID = index (0 = first string, etc.)
 
 ## Architecture
 
-use PATH to get to files to read them.
-
-### Navigation System
-PATH=src/utils/navigation
-- **Factory Method Pattern**: `ScreenFactory` creates screen objects (Section, Category, Folder, Song)
-- **Stack-based Navigation**: `NavigationController` manages screen stack with animations 
-- **State System**: `NavigationState` handles hierarchical flow logic without RTTI
+### Navigation System PATH=src/utils/navigation
+- **Factory Method Pattern**: `ScreenFactory` creates screen objects
+- **Stack-based Navigation**: `NavigationController` manages screen stack
+- **State System**: `NavigationState` handles hierarchical flow logic
 - **Screen Hierarchy**: Section → Category → Folder → Song
 
-### Core Components
-- **GUIManager**: Orchestrates display/input, handles button navigation (50ms update cycle) PATH=src/components/gui_manager
-- **ScreenBase**: Abstract base for all screens with type identification via `ScreenType` enum PATH=src/utils/navigation
-- **ButtonManager**: Handles input from physical buttons PATH=src/components/button_manager
-- **Screen Types**: Section (albums/playlists/artists), Category (albums/artists/playlists), Folder (song lists), Song (individual song) PATH=src/utils/gui
+### Core Components PATH=src/components
+- **GUIManager**: Orchestrates display/input (50ms update cycle)
+- **ButtonManager**: Handles 4 buttons (Up=26, Down=25, Select=27, Back=32)
+- **FileManager**: SD card initialization (VSPI, CS=5)
+- **MetadataManager**: Binary metadata parsing with string offset index
+- **DataManager**: Data access with sorting (albums/artists)
 
-### Data Organization
-enums found in PATH=src/utils/enums
+### Data Organization PATH=src/utils/enums
 - **FolderType**: ALBUMS, PLAYLISTS, ARTISTS, ALL_SONGS
-- **CategoryType**: ALBUMS, PLAYLISTS, ARTISTS  
-- **SongInfo**: songName, artistName, albumName, playlistName, duration
+- **CategoryType**: ALBUMS, PLAYLISTS, ARTISTS
+- **SortMode**: FILE_ORDER, ALPHABETICAL, NEWEST, OLDEST
+
+### GUI Screens PATH=src/utils/gui
+- **Section**: Root menu with animated icons (Playlists/Albums/Artists/All Songs)
+- **Category**: Lists albums/artists/playlists with scrolling text
+- **Folder**: Song lists with selection highlighting
+- **Song**: Individual song view with progress bar
 
 ## Hardware Configuration
 - ESP32 with SSD1306 OLED (I2C: SDA=21, SCL=22, Address=0x3C)
-- Input buttons managed by ButtonManager
-- Serial output for debugging (115200 baud)
+- SD Card: VSPI (MOSI=23, MISO=19, CLK=18, CS=5)
+- Buttons: Up=26, Down=25, Select=27, Back=32 (INPUT_PULLUP)
+- Serial: 115200 baud
 
-## Development Principles
-
-### Code Standards
-- **No RTTI**: Use `ScreenType` enum for type identification instead of `dynamic_cast`
-- **Error Handling**: All navigation methods return `NavResult` enum for consistent error handling
-- **Memory Management**: NavigationController does NOT own screen objects - caller manages lifecycle
-- **Non-blocking**: Fixed 50ms update intervals, all operations must be non-blocking. No use of Arduino Delay!!
-
-### File Structure
+## File Structure
 ```
 src/
+├── main.cpp
 ├── components/
-│   ├── gui_manager/     # Main GUI orchestration
-│   └── button_manager/   # Input handling
-├── utils/
-│   ├── gui/             # Screen implementations
-│   ├── navigation/       # Navigation system
-│   └── enums/           # Shared data structures
+│   ├── button_manager/    # Input handling
+│   ├── data_manager/      # Data access & sorting
+│   ├── file_manager/      # SD card operations
+│   ├── gui_manager/       # Display & navigation orchestration
+│   └── metadata_manager/  # Binary metadata parsing
+└── utils/
+    ├── enums/              # Types, paths, offsets
+    ├── gui/                # Screen implementations
+    ├── navigation/        # Navigation controller & states
+    ├── validation/        # Text scrolling
+    └── dummy_data/         # Fallback test data
 ```
 
-### Build System
-- **PlatformIO**: Primary build system (replaces Arduino CLI)
-- **Scripts**: compile.sh, upload.sh for convenience
-- **Target**: ESP32 (esp32:esp32:esp32)
-
-### Navigation Flow
-1. Root screen shows sections (Albums, Playlists, Artists, All Songs)
-2. Select section → Category screen (shows album/artist/playlist names)
-3. Select category → Folder screen (shows song list)
-4. Select song → Song screen (individual song view)
-5. Back button reverses navigation with stack pop
+## Build System
+- **PlatformIO**: `pio run`, `pio upload`
+- **Framework**: Arduino for ESP32
+- **Libraries**: Adafruit SSD1306, Adafruit GFX
 
 ## Key Constraints
-- Embedded environment: Minimal memory usage, no dynamic memory allocation in hot paths
-- Real-time: All UI operations must complete within 50ms update window
-- Resource constraints: Avoid expensive operations, use enums instead of strings where possible
+- Non-blocking: 50ms update intervals, no Arduino Delay
+- Embedded: Minimal heap usage, static allocation preferred
+- No RTTI: Use ScreenType enum for type identification
 
-## Development Guidelines
-- Follow existing naming conventions (camelCase for methods, PascalCase for classes)
-- Use Serial.println for debugging with appropriate log levels (INFO, ERROR)
-- All screen creation must go through ScreenFactory
-- Navigation errors must be handled gracefully with NavResult return codes
+## MetadataManager Implementation
+- Builds string offset index on init() for O(1) lookup
+- Loads album/artist entries into RAM on init()
+- MAX_STRINGS=6000, MAX_ALBUMS=2000, MAX_ARTISTS=2000
+- readStringById() uses pre-built offset index
