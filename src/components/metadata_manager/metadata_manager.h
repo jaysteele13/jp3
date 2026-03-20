@@ -18,21 +18,30 @@ class FileManager;
 #define MAX_SONGS_PER_QUERY 50
 
 struct AlbumEntry {
+    static constexpr size_t SIZE = 16;
+    static constexpr size_t RESERVED_BYTES = 6;
     uint32_t name_string_id;
     uint32_t artist_id;
     uint16_t year;
+    uint8_t reserved[6];
 };
 
 struct ArtistEntry {
+    static constexpr size_t SIZE = 8;
+    static constexpr size_t RESERVED_BYTES = 4;
     uint32_t name_string_id;
+    uint8_t reserved[4];
 };
 
 struct SongEntry {
+    static constexpr size_t SIZE = 24;
+    static constexpr size_t RESERVED_BYTES = 7;
     uint32_t title_string_id;
     uint32_t artist_id;
     uint32_t album_id;
     uint32_t path_string_id;
     uint8_t flags;  // 0x00 = active, 0x01 = deleted
+    uint8_t reserved[3];
 };
 
 class MetadataManager {
