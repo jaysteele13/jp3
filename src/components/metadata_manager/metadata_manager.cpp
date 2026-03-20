@@ -188,3 +188,158 @@ bool MetadataManager::readStringById(uint32_t string_id, char* buffer, size_t bu
     metadataFile.close();
     return true;
 }
+
+int MetadataManager::getSongCount() {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("ERROR: Failed to open metadata file in getSongCount");
+        return 0;
+    }
+    
+    metadataFile.seek(0x08);
+    uint32_t song_count = metadataFile.read();
+    song_count |= ((uint32_t)metadataFile.read() << 8);
+    song_count |= ((uint32_t)metadataFile.read() << 16);
+    song_count |= ((uint32_t)metadataFile.read() << 24);
+    
+    metadataFile.close();
+    return song_count;
+}
+
+static uint32_t readUint32(File& file) {
+    uint32_t val = file.read();
+    val |= ((uint32_t)file.read() << 8);
+    val |= ((uint32_t)file.read() << 16);
+    val |= ((uint32_t)file.read() << 24);
+    return val;
+}
+
+static void skipSongReservedBytes(File& file) {
+    for (int i = 0; i < 7; i++) {
+        file.read();
+    }
+}
+
+int MetadataManager::loadSongEntriesByAlbum(uint32_t albumId, uint16_t startIndex, uint8_t count, SongEntry* out) {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("ERROR: Failed to open metadata file in loadSongEntriesByAlbum");
+        return 0;
+    }
+    
+    uint32_t song_table_offset = readTableOffset(metadataFile, Offsets::SONG_TABLE_OFFSET);
+    uint32_t total_song_count = getSongCount();
+    
+    uint32_t matched_count = 0;
+    uint32_t returned_count = 0;
+    uint32_t current_pos = song_table_offset;
+    
+    for (uint32_t i = 0; i < total_song_count; i++) {
+        metadataFile.seek(current_pos);
+        
+        SongEntry entry;
+        entry.title_string_id = readUint32(metadataFile);
+        entry.artist_id = readUint32(metadataFile);
+        entry.album_id = readUint32(metadataFile);
+        entry.path_string_id = readUint32(metadataFile);
+        skipSongReservedBytes(metadataFile);
+        
+        if ((entry.flags & 0x01) == 0x00) {
+            if (entry.album_id == albumId) {
+                matched_count++;
+                if (matched_count > startIndex && returned_count < count) {
+                    out[returned_count] = entry;
+                    returned_count++;
+                }
+            }
+        }
+        
+        current_pos += 24;
+    }
+    
+    metadataFile.close();
+    Serial.printf("loadSongEntriesByAlbum: albumId=%u, found=%u, returned=%u\n", albumId, matched_count, returned_count);
+    return returned_count;
+}
+
+int MetadataManager::loadSongEntriesByArtist(uint32_t artistId, uint16_t startIndex, uint8_t count, SongEntry* out) {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("ERROR: Failed to open metadata file in loadSongEntriesByArtist");
+        return 0;
+    }
+    
+    uint32_t song_table_offset = readTableOffset(metadataFile, Offsets::SONG_TABLE_OFFSET);
+    uint32_t total_song_count = getSongCount();
+    
+    uint32_t matched_count = 0;
+    uint32_t returned_count = 0;
+    uint32_t current_pos = song_table_offset;
+    
+    for (uint32_t i = 0; i < total_song_count; i++) {
+        metadataFile.seek(current_pos);
+        
+        SongEntry entry;
+        entry.title_string_id = readUint32(metadataFile);
+        entry.artist_id = readUint32(metadataFile);
+        entry.album_id = readUint32(metadataFile);
+        entry.path_string_id = readUint32(metadataFile);
+        skipSongReservedBytes(metadataFile);
+        
+        if ((entry.flags & 0x01) == 0x00) {
+            if (entry.artist_id == artistId) {
+                matched_count++;
+                if (matched_count > startIndex && returned_count < count) {
+                    out[returned_count] = entry;
+                    returned_count++;
+                }
+            }
+        }
+        
+        current_pos += 24;
+    }
+    
+    metadataFile.close();
+    Serial.printf("loadSongEntriesByArtist: artistId=%u, found=%u, returned=%u\n", artistId, matched_count, returned_count);
+    return returned_count;
+}
+
+int MetadataManager::loadAllSongEntries(uint16_t startIndex, uint8_t count, SongEntry* out) {
+    File metadataFile = fileManager->openMetadataFile();
+    if (!metadataFile) {
+        Serial.println("ERROR: Failed to open metadata file in loadAllSongEntries");
+        return 0;
+    }
+    
+    uint32_t song_table_offset = readTableOffset(metadataFile, Offsets::SONG_TABLE_OFFSET);
+    uint32_t total_song_count = getSongCount();
+    
+    uint32_t matched_count = 0;
+    uint32_t returned_count = 0;
+    uint32_t current_pos = song_table_offset;
+    
+    for (uint32_t i = 0; i < total_song_count; i++) {
+        metadataFile.seek(current_pos);
+        
+        SongEntry entry;
+        entry.title_string_id = readUint32(metadataFile);
+        entry.artist_id = readUint32(metadataFile);
+        entry.album_id = readUint32(metadataFile);
+        entry.path_string_id = readUint32(metadataFile);
+        skipSongReservedBytes(metadataFile);
+        
+        if ((entry.flags & 0x01) == 0x00) {
+            matched_count++;
+            if (matched_count > startIndex && returned_count < count) {
+                out[returned_count] = entry;
+                returned_count++;
+            }
+        }
+        
+        current_pos += 24;
+    }
+    
+    metadataFile.close();
+    Serial.printf("loadAllSongEntries: total=%u, found=%u, returned=%u\n", total_song_count, matched_count, returned_count);
+    return returned_count;
+}
