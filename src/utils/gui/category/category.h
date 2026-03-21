@@ -55,6 +55,7 @@ class Category : public ScreenBase {
         
         // Get the currently selected category item
         CategoryInfo* getSelectedCategory() const;
+        int getSelectedIndex() const { return selectedFolderIndex; }
         
         // Reset selection and page
         void resetSelection();

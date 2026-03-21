@@ -13,7 +13,7 @@ class DataManager;
 class ScreenFactory {
 public:
     static Category* createCategory(FolderType folderType, DataManager* dm);
-    static Folder* createFolder(FolderType folderType, const String& categoryName, DataManager* dm);
+    static Folder* createFolder(FolderType folderType, const String& categoryName, SelectionContext context, DataManager* dm);
     static Song* createSong(const SongInfo* songInfo);
     static Section* createSection();
 };

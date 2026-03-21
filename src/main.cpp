@@ -87,6 +87,36 @@ void setup() {
   
   Serial.println("=== TEST COMPLETE ===\n");
 #endif
+
+#ifdef TEST_STAGE3
+  Serial.println("=== STAGE 3 TEST ===");
+  
+  SelectionContext ctx1 = {FolderType::ALBUMS, 5};
+  Folder* testFolder1 = new Folder(FolderType::ALBUMS, "Test Album", ctx1);
+  testFolder1->setDataManager(&dataManager);
+  SelectionContext retrievedCtx1 = testFolder1->getContext();
+  Serial.printf("Album folder context: type=%d, id=%u (expected: type=0, id=5)\n", 
+    (int)retrievedCtx1.folderType, retrievedCtx1.id);
+  delete testFolder1;
+  
+  SelectionContext ctx2 = {FolderType::ARTISTS, 10};
+  Folder* testFolder2 = new Folder(FolderType::ARTISTS, "Test Artist", ctx2);
+  testFolder2->setDataManager(&dataManager);
+  SelectionContext retrievedCtx2 = testFolder2->getContext();
+  Serial.printf("Artist folder context: type=%d, id=%u (expected: type=2, id=10)\n", 
+    (int)retrievedCtx2.folderType, retrievedCtx2.id);
+  delete testFolder2;
+  
+  SelectionContext ctx3 = {FolderType::ALL_SONGS, 0};
+  Folder* testFolder3 = new Folder(FolderType::ALL_SONGS, "All Songs", ctx3);
+  testFolder3->setDataManager(&dataManager);
+  SelectionContext retrievedCtx3 = testFolder3->getContext();
+  Serial.printf("All Songs context: type=%d, id=%u (expected: type=3, id=0)\n", 
+    (int)retrievedCtx3.folderType, retrievedCtx3.id);
+  delete testFolder3;
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
   
   gui.setDataManager(&dataManager);
   

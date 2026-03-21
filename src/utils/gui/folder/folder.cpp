@@ -48,6 +48,18 @@ void Folder::selectPreviousSong() {
 Folder::Folder(FolderType folderType, String folderName) : 
     folderType(folderType), 
     folderName(folderName), 
+    context({folderType, 0}),
+    totalSongs(0), 
+    currentPage(0),
+    selectedSongIndex(0),
+    dataManager(nullptr) {
+    songs = nullptr;
+}
+
+Folder::Folder(FolderType folderType, String folderName, SelectionContext ctx) : 
+    folderType(folderType), 
+    folderName(folderName), 
+    context(ctx),
     totalSongs(0), 
     currentPage(0),
     selectedSongIndex(0),

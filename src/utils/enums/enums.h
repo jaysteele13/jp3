@@ -44,6 +44,11 @@ struct CategoryInfo {
     String artistName;
 };
 
+struct SelectionContext {
+    FolderType folderType;
+    uint32_t id;  // album_id or artist_id (0 for ALL_SONGS)
+};
+
 
 
 
