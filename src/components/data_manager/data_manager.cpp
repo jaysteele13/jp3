@@ -310,3 +310,154 @@ int DataManager::getArtists(uint16_t startIndex, uint8_t count, CategoryInfo*& o
     }
     return itemsReturned;
 }
+
+int DataManager::getSongCount() {
+    if (!metadataManager) return 0;
+    return metadataManager->getSongCount();
+}
+
+int DataManager::getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) return -1;
+    if (sortedAlbumIndex >= album_count) return -1;
+    
+    out = new SongInfo[count];
+    if (!out) return -1;
+    
+    uint32_t sortedIdx = album_indices[sortedAlbumIndex];
+    AlbumEntry* albumEntry = metadataManager->getAlbumEntry(sortedIdx);
+    if (!albumEntry) {
+        delete[] out;
+        return -1;
+    }
+    
+    SongEntry entries[MAX_SONGS_PER_QUERY];
+    int loaded = metadataManager->loadSongEntriesByAlbum(albumEntry->artist_id, startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+        }
+        
+        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.album_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
+    return itemsReturned;
+}
+
+int DataManager::getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) return -1;
+    if (sortedArtistIndex >= artist_count) return -1;
+    
+    out = new SongInfo[count];
+    if (!out) return -1;
+    
+    uint32_t sortedIdx = artist_indices[sortedArtistIndex];
+    ArtistEntry* artistEntry = metadataManager->getArtistEntry(sortedIdx);
+    if (!artistEntry) {
+        delete[] out;
+        return -1;
+    }
+    
+    SongEntry entries[MAX_SONGS_PER_PAGE];
+    int loaded = metadataManager->loadSongEntriesByArtist(artistEntry->name_string_id, startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.artist_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
+    return itemsReturned;
+}
+
+int DataManager::getAllSongs(uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) return -1;
+    
+    out = new SongInfo[count];
+    if (!out) return -1;
+    
+    SongEntry entries[MAX_SONGS_PER_PAGE];
+    int loaded = metadataManager->loadAllSongEntries(startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+        }
+        
+        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
+    return itemsReturned;
+}

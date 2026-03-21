@@ -44,6 +44,50 @@ void setup() {
   dataManager.setMetadataManager(&metadataManager);
   dataManager.init();
   
+#ifdef TEST_STAGE2
+  Serial.println("=== STAGE 2 TEST ===");
+  Serial.printf("Total songs in library: %d\n", dataManager.getSongCount());
+  
+  int albumCount = dataManager.getAlbumCount();
+  Serial.printf("Total albums: %d\n", albumCount);
+  
+  if (albumCount > 0) {
+    SongInfo* songs = nullptr;
+    int songCount = dataManager.getSongsByAlbum(0, 0, 10, songs);
+    Serial.printf("Songs in first album: %d\n", songCount);
+    for (int i = 0; i < songCount; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+    }
+    delete[] songs;
+  }
+  
+  int artistCount = dataManager.getArtistCount();
+  Serial.printf("Total artists: %d\n", artistCount);
+  
+  if (artistCount > 0) {
+    SongInfo* songs = nullptr;
+    int songCount = dataManager.getSongsByArtist(0, 0, 10, songs);
+    Serial.printf("Songs by first artist: %d\n", songCount);
+    for (int i = 0; i < songCount; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+    }
+    delete[] songs;
+  }
+  
+  SongInfo* allSongs = nullptr;
+  int allSongCount = dataManager.getAllSongs(0, 10, allSongs);
+  Serial.printf("All songs (first page): %d\n", allSongCount);
+  for (int i = 0; i < allSongCount; i++) {
+    Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+      i, allSongs[i].songName.c_str(), allSongs[i].artistName.c_str(), allSongs[i].albumName.c_str());
+  }
+  delete[] allSongs;
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
+  
   gui.setDataManager(&dataManager);
   
   // Initialize with section screen (new root)
