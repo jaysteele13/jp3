@@ -352,7 +352,8 @@ int DataManager::getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex,
             out[i].artistName = String("Unknown");
         }
         
-        if (metadataManager->readStringById(entry.album_id, buffer, sizeof(buffer))) {
+        AlbumEntry* songAlbumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (songAlbumEntry && metadataManager->readStringById(songAlbumEntry->name_string_id, buffer, sizeof(buffer))) {
             out[i].albumName = String(buffer);
         } else {
             out[i].albumName = String("Unknown");
@@ -396,7 +397,8 @@ int DataManager::getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startInde
             out[i].songName = String("Unknown");
         }
         
-        if (metadataManager->readStringById(entry.artist_id, buffer, sizeof(buffer))) {
+        ArtistEntry* songArtistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (songArtistEntry && metadataManager->readStringById(songArtistEntry->name_string_id, buffer, sizeof(buffer))) {
             out[i].artistName = String(buffer);
         } else {
             out[i].artistName = String("Unknown");

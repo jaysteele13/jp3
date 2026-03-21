@@ -56,6 +56,10 @@ class Folder : public ScreenBase {
         // Get context for debugging
         SelectionContext getContext() const { return context; }
         
+        // Song data access
+        int getSongCount() const { return totalSongs; }
+        SongInfo* getSongs() const { return songs; }
+        
         ScreenType getScreenType() const override { return ScreenType::FOLDER; }
         String getScreenName() const override { return "Folder: " + folderName; }
 

@@ -117,6 +117,60 @@ void setup() {
   
   Serial.println("=== TEST COMPLETE ===\n");
 #endif
+
+#ifdef TEST_STAGE4
+  Serial.println("=== STAGE 4 TEST ===");
+  
+  if (dataManager.getAlbumCount() > 0) {
+    SelectionContext ctx = {FolderType::ALBUMS, 0};
+    Folder* folder = new Folder(FolderType::ALBUMS, "Test Album Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("Album folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  if (dataManager.getArtistCount() > 0) {
+    SelectionContext ctx = {FolderType::ARTISTS, 0};
+    Folder* folder = new Folder(FolderType::ARTISTS, "Test Artist Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("Artist folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  {
+    SelectionContext ctx = {FolderType::ALL_SONGS, 0};
+    Folder* folder = new Folder(FolderType::ALL_SONGS, "All Songs Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("All Songs folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
   
   gui.setDataManager(&dataManager);
   
