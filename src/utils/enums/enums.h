@@ -17,6 +17,7 @@ struct SongInfo {
     String albumName;     // Album name (used for artist view display)
     String playlistName;  // Playlist name (empty if not in a playlist)
     int duration;         // in seconds
+    String path;          // File path for playback
 };
 
 

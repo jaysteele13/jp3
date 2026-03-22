@@ -39,12 +39,14 @@ public:
     bool getAlbumArtistName(uint32_t index, char* buffer, size_t buffer_size);
     void setAlbumSortMode(SortMode mode);
     SortMode getAlbumSortMode() { return currentAlbumSort; }
+    uint32_t getAlbumIdAt(uint16_t sortedIndex);
 
     // Artist methods
     int getArtistCount();
     bool getArtistName(uint32_t index, char* buffer, size_t buffer_size);
     void setArtistSortMode(SortMode mode);
     SortMode getArtistSortMode() { return currentArtistSort; }
+    uint32_t getArtistIdAt(uint16_t sortedIndex);
     
     // Windowed access - returns CategoryInfo array (caller must delete[])
     // Returns: -1 = error, 0+ = number of items returned

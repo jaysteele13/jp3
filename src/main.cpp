@@ -171,6 +171,56 @@ void setup() {
   
   Serial.println("=== TEST COMPLETE ===\n");
 #endif
+
+#ifdef TEST_STAGE5
+  Serial.println("=== STAGE 5 TEST ===");
+  
+  int albumCount = dataManager.getAlbumCount();
+  int artistCount = dataManager.getArtistCount();
+  Serial.printf("Albums: %d, Artists: %d\n", albumCount, artistCount);
+  
+  if (albumCount >= 3) {
+    char albumName[64];
+    char artistName[64];
+    
+    for (int idx = 0; idx < 3; idx++) {
+      dataManager.getAlbumName(idx, albumName, sizeof(albumName));
+      dataManager.getAlbumArtistName(idx, artistName, sizeof(artistName));
+      uint32_t albumId = dataManager.getAlbumIdAt(idx);
+      Serial.printf("Album[%d]: name='%s', artist='%s', id=%u\n", idx, albumName, artistName, albumId);
+      
+      SongInfo* songs = nullptr;
+      int songCount = dataManager.getSongsByAlbum(idx, 0, 5, songs);
+      Serial.printf("  Songs by album index %d: %d found\n", idx, songCount);
+      for (int i = 0; i < songCount && i < 3; i++) {
+        Serial.printf("    Song: title='%s', artist='%s', album='%s'\n", 
+          songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+      }
+      delete[] songs;
+    }
+  }
+  
+  if (artistCount >= 3) {
+    char artistName[64];
+    
+    for (int idx = 0; idx < 3; idx++) {
+      dataManager.getArtistName(idx, artistName, sizeof(artistName));
+      uint32_t artistId = dataManager.getArtistIdAt(idx);
+      Serial.printf("Artist[%d]: name='%s', id=%u\n", idx, artistName, artistId);
+      
+      SongInfo* songs = nullptr;
+      int songCount = dataManager.getSongsByArtist(idx, 0, 5, songs);
+      Serial.printf("  Songs by artist index %d: %d found\n", idx, songCount);
+      for (int i = 0; i < songCount && i < 3; i++) {
+        Serial.printf("    Song: title='%s', artist='%s', album='%s'\n", 
+          songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+      }
+      delete[] songs;
+    }
+  }
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
   
   gui.setDataManager(&dataManager);
   
