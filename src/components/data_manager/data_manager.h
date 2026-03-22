@@ -9,6 +9,7 @@ class MetadataManager;
 #define MAX_ALBUMS 2000
 #define MAX_ARTISTS 2000
 #define DATA_MANAGER_BUFFER_SIZE 64
+#define MAX_SONGS_PER_PAGE 10
 
 class DataManager {
 private:
@@ -38,17 +39,25 @@ public:
     bool getAlbumArtistName(uint32_t index, char* buffer, size_t buffer_size);
     void setAlbumSortMode(SortMode mode);
     SortMode getAlbumSortMode() { return currentAlbumSort; }
+    uint32_t getAlbumIdAt(uint16_t sortedIndex);
 
     // Artist methods
     int getArtistCount();
     bool getArtistName(uint32_t index, char* buffer, size_t buffer_size);
     void setArtistSortMode(SortMode mode);
     SortMode getArtistSortMode() { return currentArtistSort; }
+    uint32_t getArtistIdAt(uint16_t sortedIndex);
     
     // Windowed access - returns CategoryInfo array (caller must delete[])
     // Returns: -1 = error, 0+ = number of items returned
     int getAlbums(uint16_t startIndex, uint8_t count, CategoryInfo*& out);
     int getArtists(uint16_t startIndex, uint8_t count, CategoryInfo*& out);
+    
+    // Song methods
+    int getSongCount();
+    int getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex, uint8_t count, SongInfo*& out);
+    int getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startIndex, uint8_t count, SongInfo*& out);
+    int getAllSongs(uint16_t startIndex, uint8_t count, SongInfo*& out);
 };
 
 #endif

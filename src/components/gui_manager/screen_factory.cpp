@@ -9,8 +9,8 @@ Category* ScreenFactory::createCategory(FolderType folderType, DataManager* dm) 
     return category;
 }
 
-Folder* ScreenFactory::createFolder(FolderType folderType, const String& categoryName, DataManager* dm) {
-    Folder* folder = new Folder(folderType, categoryName);
+Folder* ScreenFactory::createFolder(FolderType folderType, const String& categoryName, SelectionContext context, DataManager* dm) {
+    Folder* folder = new Folder(folderType, categoryName, context);
     folder->setDataManager(dm);
     return folder;
 }

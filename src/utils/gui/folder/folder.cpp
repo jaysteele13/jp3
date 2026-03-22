@@ -48,6 +48,18 @@ void Folder::selectPreviousSong() {
 Folder::Folder(FolderType folderType, String folderName) : 
     folderType(folderType), 
     folderName(folderName), 
+    context({folderType, 0}),
+    totalSongs(0), 
+    currentPage(0),
+    selectedSongIndex(0),
+    dataManager(nullptr) {
+    songs = nullptr;
+}
+
+Folder::Folder(FolderType folderType, String folderName, SelectionContext ctx) : 
+    folderType(folderType), 
+    folderName(folderName), 
+    context(ctx),
     totalSongs(0), 
     currentPage(0),
     selectedSongIndex(0),
@@ -70,25 +82,27 @@ void Folder::resetSelection() {
 }
 
 SongInfo* Folder::loadSongData(int amount) {
-    // Try to load real data based on folder type
-    int dataCount = 0;
     SongInfo* songData = nullptr;
+    int dataCount = 0;
     
-    if (folderType == FolderType::ALBUMS) {
-        songData = dummyData::getSongsForAlbum(folderName, dataCount);
-    } else if (folderType == FolderType::ARTISTS) {
-        songData = dummyData::getSongsForArtist(folderName, dataCount);
-    } else if (folderType == FolderType::PLAYLISTS) {
-        songData = dummyData::getSongsForPlaylist(folderName, dataCount);
-    } 
-    else if (folderType == FolderType::ALL_SONGS) {
-        songData = dummyData::getAllSongs(dataCount);
+    if (dataManager != nullptr) {
+        switch (context.folderType) {
+            case FolderType::ALBUMS:
+                dataCount = dataManager->getSongsByAlbum(context.id, 0, amount, songData);
+                break;
+            case FolderType::ARTISTS:
+                dataCount = dataManager->getSongsByArtist(context.id, 0, amount, songData);
+                break;
+            case FolderType::ALL_SONGS:
+                dataCount = dataManager->getAllSongs(0, amount, songData);
+                break;
+            case FolderType::PLAYLISTS:
+                dataCount = 0;
+                break;
+        }
     }
-
-
-    // If song data isn't null return
+    
     if (songData != nullptr && dataCount > 0) {
-        // Use real data
         totalSongs = dataCount;
         songs = songData;
         return songs;

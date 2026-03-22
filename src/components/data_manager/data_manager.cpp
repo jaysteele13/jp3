@@ -139,6 +139,16 @@ int DataManager::getArtistCount() {
     return artist_count;
 }
 
+uint32_t DataManager::getAlbumIdAt(uint16_t sortedIndex) {
+    if (sortedIndex >= album_count) return 0;
+    return album_indices[sortedIndex];
+}
+
+uint32_t DataManager::getArtistIdAt(uint16_t sortedIndex) {
+    if (sortedIndex >= artist_count) return 0;
+    return artist_indices[sortedIndex];
+}
+
 void DataManager::setAlbumSortMode(SortMode mode) {
     if (mode == currentAlbumSort) return;
     currentAlbumSort = mode;
@@ -308,5 +318,223 @@ int DataManager::getArtists(uint16_t startIndex, uint8_t count, CategoryInfo*& o
         
         itemsReturned++;
     }
+    return itemsReturned;
+}
+
+int DataManager::getSongCount() {
+    if (!metadataManager) return 0;
+    return metadataManager->getSongCount();
+}
+
+int DataManager::getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) {
+        Serial.println("ERROR: getSongsByAlbum - metadataManager not set");
+        return -1;
+    }
+    if (sortedAlbumIndex >= album_count) {
+        Serial.printf("ERROR: getSongsByAlbum - index %u out of bounds (count=%u)\n", sortedAlbumIndex, album_count);
+        return -1;
+    }
+    
+    if (count > MAX_SONGS_PER_PAGE) {
+        Serial.printf("WARNING: getSongsByAlbum - count %u exceeds max %u, truncating\n", count, MAX_SONGS_PER_PAGE);
+        count = MAX_SONGS_PER_PAGE;
+    }
+    
+    out = new SongInfo[count];
+    if (!out) {
+        Serial.println("ERROR: getSongsByAlbum - failed to allocate memory");
+        return -1;
+    }
+    
+    uint32_t sortedIdx = album_indices[sortedAlbumIndex];
+    AlbumEntry* albumEntry = metadataManager->getAlbumEntry(sortedIdx);
+    if (!albumEntry) {
+        Serial.printf("ERROR: getSongsByAlbum - failed to get album entry at index %u\n", sortedIdx);
+        delete[] out;
+        return -1;
+    }
+    
+    SongEntry entries[MAX_SONGS_PER_PAGE];
+    int loaded = metadataManager->loadSongEntriesByAlbum(sortedIdx, startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+            Serial.printf("WARNING: getSongsByAlbum - failed to read title string for song %u\n", i);
+        }
+        
+        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* songAlbumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (songAlbumEntry && metadataManager->readStringById(songAlbumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
+            out[i].path = String(buffer);
+        } else {
+            out[i].path = String("");
+            Serial.printf("WARNING: getSongsByAlbum - failed to read path string for song %u\n", i);
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
+    return itemsReturned;
+}
+
+int DataManager::getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) {
+        Serial.println("ERROR: getSongsByArtist - metadataManager not set");
+        return -1;
+    }
+    if (sortedArtistIndex >= artist_count) {
+        Serial.printf("ERROR: getSongsByArtist - index %u out of bounds (count=%u)\n", sortedArtistIndex, artist_count);
+        return -1;
+    }
+    
+    if (count > MAX_SONGS_PER_PAGE) {
+        Serial.printf("WARNING: getSongsByArtist - count %u exceeds max %u, truncating\n", count, MAX_SONGS_PER_PAGE);
+        count = MAX_SONGS_PER_PAGE;
+    }
+    
+    out = new SongInfo[count];
+    if (!out) {
+        Serial.println("ERROR: getSongsByArtist - failed to allocate memory");
+        return -1;
+    }
+    
+    uint32_t sortedIdx = artist_indices[sortedArtistIndex];
+    ArtistEntry* artistEntry = metadataManager->getArtistEntry(sortedIdx);
+    if (!artistEntry) {
+        Serial.printf("ERROR: getSongsByArtist - failed to get artist entry at index %u\n", sortedIdx);
+        delete[] out;
+        return -1;
+    }
+    
+    SongEntry entries[MAX_SONGS_PER_PAGE];
+    int loaded = metadataManager->loadSongEntriesByArtist(sortedIdx, startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+            Serial.printf("WARNING: getSongsByArtist - failed to read title string for song %u\n", i);
+        }
+        
+        ArtistEntry* songArtistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (songArtistEntry && metadataManager->readStringById(songArtistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
+            out[i].path = String(buffer);
+        } else {
+            out[i].path = String("");
+            Serial.printf("WARNING: getSongsByArtist - failed to read path string for song %u\n", i);
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
+    return itemsReturned;
+}
+
+int DataManager::getAllSongs(uint16_t startIndex, uint8_t count, SongInfo*& out) {
+    if (!metadataManager) {
+        Serial.println("ERROR: getAllSongs - metadataManager not set");
+        return -1;
+    }
+    
+    if (count > MAX_SONGS_PER_PAGE) {
+        Serial.printf("WARNING: getAllSongs - count %u exceeds max %u, truncating\n", count, MAX_SONGS_PER_PAGE);
+        count = MAX_SONGS_PER_PAGE;
+    }
+    
+    out = new SongInfo[count];
+    if (!out) {
+        Serial.println("ERROR: getAllSongs - failed to allocate memory");
+        return -1;
+    }
+    
+    SongEntry entries[MAX_SONGS_PER_PAGE];
+    int loaded = metadataManager->loadAllSongEntries(startIndex, count, entries);
+    
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    uint8_t itemsReturned = 0;
+    
+    for (uint8_t i = 0; i < loaded; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+            Serial.printf("WARNING: getAllSongs - failed to read title string for song %u\n", i);
+        }
+        
+        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
+            out[i].path = String(buffer);
+        } else {
+            out[i].path = String("");
+            Serial.printf("WARNING: getAllSongs - failed to read path string for song %u\n", i);
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+        
+        itemsReturned++;
+    }
+    
     return itemsReturned;
 }

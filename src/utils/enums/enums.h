@@ -17,6 +17,7 @@ struct SongInfo {
     String albumName;     // Album name (used for artist view display)
     String playlistName;  // Playlist name (empty if not in a playlist)
     int duration;         // in seconds
+    String path;          // File path for playback
 };
 
 
@@ -42,6 +43,11 @@ struct AlbumInfo {
 struct CategoryInfo {
     String categoryName;
     String artistName;
+};
+
+struct SelectionContext {
+    FolderType folderType;
+    uint32_t id;  // album_id or artist_id (0 for ALL_SONGS)
 };
 
 

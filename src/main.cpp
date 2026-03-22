@@ -23,8 +23,204 @@ void setup() {
   metadataManager.setFileManager(&fileManager);
   metadataManager.init();
   
+#ifdef TEST_STAGE1
+  Serial.println("=== STAGE 1 TEST ===");
+  Serial.printf("Total songs in library: %d\n", metadataManager.getSongCount());
+  
+  int amount_of_songs_to_load = 30;
+  SongEntry testEntries[amount_of_songs_to_load];
+  int count = metadataManager.loadAllSongEntries(0, amount_of_songs_to_load, testEntries);
+  Serial.printf("First %d songs loaded\n", count);
+  char titleBuffer[64];
+  for (int i = 0; i < count; i++) {
+    metadataManager.readStringById(testEntries[i].title_string_id, titleBuffer, sizeof(titleBuffer));
+    Serial.printf("  Song %d: title: %s, title_id=%u, artist_id=%u, album_id=%u\n", 
+      i, titleBuffer, testEntries[i].title_string_id, 
+      testEntries[i].artist_id, testEntries[i].album_id);
+  }
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
+  
   dataManager.setMetadataManager(&metadataManager);
   dataManager.init();
+  
+#ifdef TEST_STAGE2
+  Serial.println("=== STAGE 2 TEST ===");
+  Serial.printf("Total songs in library: %d\n", dataManager.getSongCount());
+  
+  int albumCount = dataManager.getAlbumCount();
+  Serial.printf("Total albums: %d\n", albumCount);
+  
+  if (albumCount > 0) {
+    SongInfo* songs = nullptr;
+    int songCount = dataManager.getSongsByAlbum(0, 0, 10, songs);
+    Serial.printf("Songs in first album: %d\n", songCount);
+    for (int i = 0; i < songCount; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+    }
+    delete[] songs;
+  }
+  
+  int artistCount = dataManager.getArtistCount();
+  Serial.printf("Total artists: %d\n", artistCount);
+  
+  if (artistCount > 0) {
+    SongInfo* songs = nullptr;
+    int songCount = dataManager.getSongsByArtist(0, 0, 10, songs);
+    Serial.printf("Songs by first artist: %d\n", songCount);
+    for (int i = 0; i < songCount; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+    }
+    delete[] songs;
+  }
+  
+  SongInfo* allSongs = nullptr;
+  int allSongCount = dataManager.getAllSongs(0, 10, allSongs);
+  Serial.printf("All songs (first page): %d\n", allSongCount);
+  for (int i = 0; i < allSongCount; i++) {
+    Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+      i, allSongs[i].songName.c_str(), allSongs[i].artistName.c_str(), allSongs[i].albumName.c_str());
+  }
+  delete[] allSongs;
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
+
+#ifdef TEST_STAGE3
+  Serial.println("=== STAGE 3 TEST ===");
+  
+  SelectionContext ctx1 = {FolderType::ALBUMS, 5};
+  Folder* testFolder1 = new Folder(FolderType::ALBUMS, "Test Album", ctx1);
+  testFolder1->setDataManager(&dataManager);
+  SelectionContext retrievedCtx1 = testFolder1->getContext();
+  Serial.printf("Album folder context: type=%d, id=%u (expected: type=0, id=5)\n", 
+    (int)retrievedCtx1.folderType, retrievedCtx1.id);
+  delete testFolder1;
+  
+  SelectionContext ctx2 = {FolderType::ARTISTS, 10};
+  Folder* testFolder2 = new Folder(FolderType::ARTISTS, "Test Artist", ctx2);
+  testFolder2->setDataManager(&dataManager);
+  SelectionContext retrievedCtx2 = testFolder2->getContext();
+  Serial.printf("Artist folder context: type=%d, id=%u (expected: type=2, id=10)\n", 
+    (int)retrievedCtx2.folderType, retrievedCtx2.id);
+  delete testFolder2;
+  
+  SelectionContext ctx3 = {FolderType::ALL_SONGS, 0};
+  Folder* testFolder3 = new Folder(FolderType::ALL_SONGS, "All Songs", ctx3);
+  testFolder3->setDataManager(&dataManager);
+  SelectionContext retrievedCtx3 = testFolder3->getContext();
+  Serial.printf("All Songs context: type=%d, id=%u (expected: type=3, id=0)\n", 
+    (int)retrievedCtx3.folderType, retrievedCtx3.id);
+  delete testFolder3;
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
+
+#ifdef TEST_STAGE4
+  Serial.println("=== STAGE 4 TEST ===");
+  
+  if (dataManager.getAlbumCount() > 0) {
+    SelectionContext ctx = {FolderType::ALBUMS, 0};
+    Folder* folder = new Folder(FolderType::ALBUMS, "Test Album Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("Album folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  if (dataManager.getArtistCount() > 0) {
+    SelectionContext ctx = {FolderType::ARTISTS, 0};
+    Folder* folder = new Folder(FolderType::ARTISTS, "Test Artist Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("Artist folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  {
+    SelectionContext ctx = {FolderType::ALL_SONGS, 0};
+    Folder* folder = new Folder(FolderType::ALL_SONGS, "All Songs Folder", ctx);
+    folder->setDataManager(&dataManager);
+    
+    SongInfo* loadedSongs = folder->loadSongData(10);
+    int songCount = folder->getSongCount();
+    Serial.printf("All Songs folder loaded %d songs\n", songCount);
+    for (int i = 0; i < songCount && i < 5; i++) {
+      Serial.printf("  Song %d: title='%s', artist='%s', album='%s'\n", 
+        i, loadedSongs[i].songName.c_str(), loadedSongs[i].artistName.c_str(), loadedSongs[i].albumName.c_str());
+    }
+    delete[] loadedSongs;
+    delete folder;
+  }
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
+
+#ifdef TEST_STAGE5
+  Serial.println("=== STAGE 5 TEST ===");
+  
+  int albumCount = dataManager.getAlbumCount();
+  int artistCount = dataManager.getArtistCount();
+  Serial.printf("Albums: %d, Artists: %d\n", albumCount, artistCount);
+  
+  if (albumCount >= 3) {
+    char albumName[64];
+    char artistName[64];
+    
+    for (int idx = 0; idx < 3; idx++) {
+      dataManager.getAlbumName(idx, albumName, sizeof(albumName));
+      dataManager.getAlbumArtistName(idx, artistName, sizeof(artistName));
+      uint32_t albumId = dataManager.getAlbumIdAt(idx);
+      Serial.printf("Album[%d]: name='%s', artist='%s', id=%u\n", idx, albumName, artistName, albumId);
+      
+      SongInfo* songs = nullptr;
+      int songCount = dataManager.getSongsByAlbum(idx, 0, 5, songs);
+      Serial.printf("  Songs by album index %d: %d found\n", idx, songCount);
+      for (int i = 0; i < songCount && i < 3; i++) {
+        Serial.printf("    Song: title='%s', artist='%s', album='%s'\n", 
+          songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+      }
+      delete[] songs;
+    }
+  }
+  
+  if (artistCount >= 3) {
+    char artistName[64];
+    
+    for (int idx = 0; idx < 3; idx++) {
+      dataManager.getArtistName(idx, artistName, sizeof(artistName));
+      uint32_t artistId = dataManager.getArtistIdAt(idx);
+      Serial.printf("Artist[%d]: name='%s', id=%u\n", idx, artistName, artistId);
+      
+      SongInfo* songs = nullptr;
+      int songCount = dataManager.getSongsByArtist(idx, 0, 5, songs);
+      Serial.printf("  Songs by artist index %d: %d found\n", idx, songCount);
+      for (int i = 0; i < songCount && i < 3; i++) {
+        Serial.printf("    Song: title='%s', artist='%s', album='%s'\n", 
+          songs[i].songName.c_str(), songs[i].artistName.c_str(), songs[i].albumName.c_str());
+      }
+      delete[] songs;
+    }
+  }
+  
+  Serial.println("=== TEST COMPLETE ===\n");
+#endif
   
   gui.setDataManager(&dataManager);
   

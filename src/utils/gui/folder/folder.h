@@ -34,6 +34,7 @@ struct DisplayConfig {
 class Folder : public ScreenBase {
     public:
         Folder(FolderType folderType, String folderName);
+        Folder(FolderType folderType, String folderName, SelectionContext context);
         SongInfo* loadSongData(int amount);
         void display(Adafruit_SSD1306 &display) override;
         void handleInput(ButtonManager& buttons) override;
@@ -52,12 +53,20 @@ class Folder : public ScreenBase {
         // Set DataManager for data loading
         void setDataManager(DataManager* dm) { dataManager = dm; }
         
+        // Get context for debugging
+        SelectionContext getContext() const { return context; }
+        
+        // Song data access
+        int getSongCount() const { return totalSongs; }
+        SongInfo* getSongs() const { return songs; }
+        
         ScreenType getScreenType() const override { return ScreenType::FOLDER; }
         String getScreenName() const override { return "Folder: " + folderName; }
 
     private:
         FolderType folderType;
         String folderName;
+        SelectionContext context;
         SongInfo* songs;
         int totalSongs;
         int currentPage;
