@@ -20,6 +20,13 @@ struct SongInfo {
     String path;          // File path for playback
 };
 
+// Cache configuration to hold song data for pagination (Used within the folder section)
+struct CacheConfig {
+    static constexpr int MAX_CACHED_BATCHES = 3;
+    static constexpr int PREFETCH_THRESHOLD = 3;
+    static constexpr int SONGS_PER_BATCH = 10;
+};
+
 
 // SORTING
 enum class SortMode {
