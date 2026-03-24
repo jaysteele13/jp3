@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "utils/enums/enums.h"
+#include "../metadata_manager/metadata_manager.h"
 
 class MetadataManager;
 
@@ -27,6 +28,7 @@ private:
     void sortArtistIndices(SortMode mode);
     int compareAlbumNames(uint32_t indexA, uint32_t indexB);
     int compareArtistNames(uint32_t indexA, uint32_t indexB);
+    void resolveSongEntries(SongEntry* entries, int count, SongInfo* out);
 
 public:
     DataManager();

@@ -326,6 +326,42 @@ int DataManager::getSongCount() {
     return metadataManager->getSongCount();
 }
 
+void DataManager::resolveSongEntries(SongEntry* entries, int count, SongInfo* out) {
+    char buffer[DATA_MANAGER_BUFFER_SIZE];
+    for (int i = 0; i < count; i++) {
+        SongEntry& entry = entries[i];
+        
+        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
+            out[i].songName = String(buffer);
+        } else {
+            out[i].songName = String("Unknown");
+        }
+        
+        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
+        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].artistName = String(buffer);
+        } else {
+            out[i].artistName = String("Unknown");
+        }
+        
+        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
+        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
+            out[i].albumName = String(buffer);
+        } else {
+            out[i].albumName = String("Unknown");
+        }
+        
+        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
+            out[i].path = String(buffer);
+        } else {
+            out[i].path = String("");
+        }
+        
+        out[i].playlistName = String("");
+        out[i].duration = 0;
+    }
+}
+
 int DataManager::getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
     if (!metadataManager) {
         Serial.println("ERROR: getSongsByAlbum - metadataManager not set");
@@ -358,47 +394,11 @@ int DataManager::getSongsByAlbum(uint16_t sortedAlbumIndex, uint16_t startIndex,
     SongEntry entries[MAX_SONGS_PER_PAGE];
     int loaded = metadataManager->loadSongEntriesByAlbum(sortedIdx, startIndex, count, entries);
     
-    char buffer[DATA_MANAGER_BUFFER_SIZE];
-    uint8_t itemsReturned = 0;
-    
-    for (uint8_t i = 0; i < loaded; i++) {
-        SongEntry& entry = entries[i];
-        
-        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
-            out[i].songName = String(buffer);
-        } else {
-            out[i].songName = String("Unknown");
-            Serial.printf("WARNING: getSongsByAlbum - failed to read title string for song %u\n", i);
-        }
-        
-        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
-        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].artistName = String(buffer);
-        } else {
-            out[i].artistName = String("Unknown");
-        }
-        
-        AlbumEntry* songAlbumEntry = metadataManager->getAlbumEntry(entry.album_id);
-        if (songAlbumEntry && metadataManager->readStringById(songAlbumEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].albumName = String(buffer);
-        } else {
-            out[i].albumName = String("Unknown");
-        }
-        
-        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
-            out[i].path = String(buffer);
-        } else {
-            out[i].path = String("");
-            Serial.printf("WARNING: getSongsByAlbum - failed to read path string for song %u\n", i);
-        }
-        
-        out[i].playlistName = String("");
-        out[i].duration = 0;
-        
-        itemsReturned++;
+    if (loaded > 0) {
+        resolveSongEntries(entries, loaded, out);
     }
     
-    return itemsReturned;
+    return loaded;
 }
 
 int DataManager::getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startIndex, uint8_t count, SongInfo*& out) {
@@ -433,47 +433,11 @@ int DataManager::getSongsByArtist(uint16_t sortedArtistIndex, uint16_t startInde
     SongEntry entries[MAX_SONGS_PER_PAGE];
     int loaded = metadataManager->loadSongEntriesByArtist(sortedIdx, startIndex, count, entries);
     
-    char buffer[DATA_MANAGER_BUFFER_SIZE];
-    uint8_t itemsReturned = 0;
-    
-    for (uint8_t i = 0; i < loaded; i++) {
-        SongEntry& entry = entries[i];
-        
-        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
-            out[i].songName = String(buffer);
-        } else {
-            out[i].songName = String("Unknown");
-            Serial.printf("WARNING: getSongsByArtist - failed to read title string for song %u\n", i);
-        }
-        
-        ArtistEntry* songArtistEntry = metadataManager->getArtistEntry(entry.artist_id);
-        if (songArtistEntry && metadataManager->readStringById(songArtistEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].artistName = String(buffer);
-        } else {
-            out[i].artistName = String("Unknown");
-        }
-        
-        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
-        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].albumName = String(buffer);
-        } else {
-            out[i].albumName = String("Unknown");
-        }
-        
-        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
-            out[i].path = String(buffer);
-        } else {
-            out[i].path = String("");
-            Serial.printf("WARNING: getSongsByArtist - failed to read path string for song %u\n", i);
-        }
-        
-        out[i].playlistName = String("");
-        out[i].duration = 0;
-        
-        itemsReturned++;
+    if (loaded > 0) {
+        resolveSongEntries(entries, loaded, out);
     }
     
-    return itemsReturned;
+    return loaded;
 }
 
 int DataManager::getAllSongs(uint16_t startIndex, uint8_t count, SongInfo*& out) {
@@ -496,45 +460,9 @@ int DataManager::getAllSongs(uint16_t startIndex, uint8_t count, SongInfo*& out)
     SongEntry entries[MAX_SONGS_PER_PAGE];
     int loaded = metadataManager->loadAllSongEntries(startIndex, count, entries);
     
-    char buffer[DATA_MANAGER_BUFFER_SIZE];
-    uint8_t itemsReturned = 0;
-    
-    for (uint8_t i = 0; i < loaded; i++) {
-        SongEntry& entry = entries[i];
-        
-        if (metadataManager->readStringById(entry.title_string_id, buffer, sizeof(buffer))) {
-            out[i].songName = String(buffer);
-        } else {
-            out[i].songName = String("Unknown");
-            Serial.printf("WARNING: getAllSongs - failed to read title string for song %u\n", i);
-        }
-        
-        ArtistEntry* artistEntry = metadataManager->getArtistEntry(entry.artist_id);
-        if (artistEntry && metadataManager->readStringById(artistEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].artistName = String(buffer);
-        } else {
-            out[i].artistName = String("Unknown");
-        }
-        
-        AlbumEntry* albumEntry = metadataManager->getAlbumEntry(entry.album_id);
-        if (albumEntry && metadataManager->readStringById(albumEntry->name_string_id, buffer, sizeof(buffer))) {
-            out[i].albumName = String(buffer);
-        } else {
-            out[i].albumName = String("Unknown");
-        }
-        
-        if (metadataManager->readStringById(entry.path_string_id, buffer, sizeof(buffer))) {
-            out[i].path = String(buffer);
-        } else {
-            out[i].path = String("");
-            Serial.printf("WARNING: getAllSongs - failed to read path string for song %u\n", i);
-        }
-        
-        out[i].playlistName = String("");
-        out[i].duration = 0;
-        
-        itemsReturned++;
+    if (loaded > 0) {
+        resolveSongEntries(entries, loaded, out);
     }
     
-    return itemsReturned;
+    return loaded;
 }
